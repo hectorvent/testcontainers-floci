@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: java-kotlin
 
@@ -47,7 +47,7 @@ jobs:
         run: mvn -B verify
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
       - name: Publish test results
         uses: EnricoMi/publish-unit-test-result-action@v2
