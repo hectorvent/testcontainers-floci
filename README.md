@@ -19,7 +19,13 @@ Floci provides a single Docker container that emulates 19+ AWS services (S3, SQS
 
 - Java 17+
 - Docker
-- Testcontainers 2.x
+
+## Version Compatibility
+
+| testcontainers-floci | Spring Boot | Spring Cloud AWS | Testcontainers |
+|----------------------|-------------|------------------|----------------|
+| **2.x**              | 4.0.x       | 4.0.x            | 2.x            |
+| **1.x**              | 3.5.x       | 3.4.x            | 1.x            |
 
 ---
 
