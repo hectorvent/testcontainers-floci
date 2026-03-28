@@ -11,8 +11,8 @@ updates:
     directory: /
     target-branch: releases/1.x
     ignore:
-      - dependency-name: *
-        update-types: [ version-update:semver-major ]
+      - dependency-name: "*"
+        update-types: [ "version-update:semver-major" ]
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
@@ -31,8 +31,8 @@ updates:
     directory: /
     target-branch: releases/1.x
     ignore:
-      - dependency-name: *
-        update-types: [ version-update:semver-major ]
+      - dependency-name: "*"
+        update-types: [ "version-update:semver-major" ]
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
