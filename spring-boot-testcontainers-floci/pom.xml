@@ -7,7 +7,7 @@
     <parent>
         <groupId>io.floci</groupId>
         <artifactId>testcontainers-floci-parent</artifactId>
-        <version>2.0.0-SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>spring-boot-testcontainers-floci</artifactId>
@@ -75,7 +75,7 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
