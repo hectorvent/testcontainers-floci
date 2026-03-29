@@ -1,0 +1,247 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Dry run (no actual release)'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Step 1: Calculate version from tags + commits, update POMs, tag, create GitHub Release
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release-version: ${{ steps.changelog.outputs.version }}
+      tag: ${{ steps.changelog.outputs.tag }}
+      skipped: ${{ steps.changelog.outputs.skipped }}
+      changelog: ${{ steps.changelog.outputs.clean_changelog }}
+      next-snapshot: ${{ steps.snapshot.outputs.next-snapshot }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Detect version from latest git tag
+        id: current
+        run: |
+          # Find the latest semver tag reachable from HEAD
+          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            # No tag found — derive fallback from branch name
+            BRANCH="${GITHUB_REF_NAME}"
+            if [[ "$BRANCH" == releases/* ]]; then
+              MAJOR=$(echo "$BRANCH" | sed -E 's|releases/([0-9]+)\.x|\1|')
+            else
+              MAJOR=0
+            fi
+            MINOR=0
+            FALLBACK="${MAJOR}.0.0"
+          else
+            VERSION="${LAST_TAG#v}"
+            MAJOR=$(echo "$VERSION" | cut -d. -f1)
+            MINOR=$(echo "$VERSION" | cut -d. -f2)
+            FALLBACK="$VERSION"
+          fi
+          echo "major=$MAJOR" >> "$GITHUB_OUTPUT"
+          echo "minor=$MINOR" >> "$GITHUB_OUTPUT"
+          echo "fallback=$FALLBACK" >> "$GITHUB_OUTPUT"
+          echo "### Version detection" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Last tag: ${LAST_TAG:-none}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Major: $MAJOR, Minor: $MINOR" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Calculate version and generate changelog
+        id: changelog
+        uses: TriPSs/conventional-changelog-action@91be4f3188da74fe85de9caffcebc80b26d43b5b # v6.3.0
+        with:
+          skip-version-file: 'true'
+          skip-commit: 'true'
+          skip-tag: 'true'
+          skip-git-pull: 'true'
+          git-push: 'false'
+          fallback-version: ${{ steps.current.outputs.fallback }}
+          pre-changelog-generation: .github/scripts/pre-changelog.js
+        env:
+          CURRENT_MAJOR: ${{ steps.current.outputs.major }}
+          CURRENT_MINOR: ${{ steps.current.outputs.minor }}
+
+      - name: Calculate next SNAPSHOT version
+        id: snapshot
+        if: steps.changelog.outputs.skipped != 'true'
+        run: |
+          VERSION="${{ steps.changelog.outputs.version }}"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          PATCH=$(echo "$VERSION" | cut -d. -f3)
+          echo "next-snapshot=${MAJOR}.${MINOR}.$((PATCH + 1))-SNAPSHOT" >> "$GITHUB_OUTPUT"
+          echo "- Next Snapshot: ${MAJOR}.${MINOR}.$((PATCH + 1))-SNAPSHOT" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set release version in POMs
+        if: steps.changelog.outputs.skipped != 'true' && inputs.dry-run != true
+        run: mvn -B versions:set -DnewVersion=${{ steps.changelog.outputs.version }} -DgenerateBackupPoms=false
+
+      - name: Commit release version, tag, and push
+        if: steps.changelog.outputs.skipped != 'true' && inputs.dry-run != true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): ${{ steps.changelog.outputs.version }} [skip ci]"
+          git tag "${{ steps.changelog.outputs.tag }}"
+          git push origin HEAD
+          git push origin "${{ steps.changelog.outputs.tag }}"
+
+      - name: Create GitHub Release
+        if: steps.changelog.outputs.skipped != 'true' && inputs.dry-run != true
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        with:
+          tag_name: ${{ steps.changelog.outputs.tag }}
+          name: ${{ steps.changelog.outputs.tag }}
+          body: ${{ steps.changelog.outputs.clean_changelog }}
+
+      - name: Summary
+        run: |
+          echo "### 🚀 Release Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Version:** ${{ steps.changelog.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Tag:** ${{ steps.changelog.outputs.tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Skipped:** ${{ steps.changelog.outputs.skipped }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Dry run:** ${{ inputs.dry-run }}" >> "$GITHUB_STEP_SUMMARY"
+
+  # Step 2: Build from tag, publish to Maven Central, upload artifacts to GitHub Release
+  publish:
+    needs: prepare
+    if: inputs.dry-run != true && needs.prepare.outputs.skipped != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+          server-id: central
+          server-username: MAVEN_CENTRAL_USERNAME
+          server-password: MAVEN_CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
+
+      - name: Build and publish to Maven Central
+        run: mvn -B -Ppublishing deploy
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+
+      - name: Collect release artifacts
+        run: |
+          mkdir -p staging
+          find . -path '*/target/*.jar' -not -name '*-sources.jar' -not -name '*-javadoc.jar' \
+            -not -name 'original-*' | while read f; do cp "$f" staging/; done
+          find . -path '*/target/*-sources.jar' | while read f; do cp "$f" staging/; done
+          find . -path '*/target/*-javadoc.jar' | while read f; do cp "$f" staging/; done
+
+      - name: Upload artifacts to GitHub Release
+        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          files: staging/*
+
+  # Step 3: Run security scanners against the release tag
+  security-scan:
+    needs: prepare
+    if: inputs.dry-run != true && needs.prepare.outputs.skipped != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
+        with:
+          languages: java-kotlin
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build for analysis
+        run: mvn -B compile -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          scan-type: fs
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@c10b8064de6f491fea524254123dbe5e09572f13 # v4.35.1
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy
+
+      - name: Submit Dependency Snapshot
+        uses: advanced-security/maven-dependency-submission-action@b275d12641ac2d2108b2cbb7598b154ad2f2cee8 # v5.0.0
+
+  # Step 4: Bump to next SNAPSHOT version
+  finalize:
+    needs: prepare
+    if: inputs.dry-run != true && needs.prepare.outputs.skipped != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Set next SNAPSHOT version
+        run: mvn -B versions:set -DnewVersion=${{ needs.prepare.outputs.next-snapshot }} -DgenerateBackupPoms=false
+
+      - name: Commit next SNAPSHOT version
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore(release): prepare next development iteration ${{ needs.prepare.outputs.next-snapshot }} [skip ci]"
+          git push origin HEAD
