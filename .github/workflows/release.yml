@@ -90,7 +90,6 @@ jobs:
           echo "next-snapshot=${MAJOR}.${MINOR}.$((PATCH + 1))-SNAPSHOT" >> "$GITHUB_OUTPUT"
 
       - name: Set release version in POMs
-        if: inputs.dry-run != true
         run: mvn -B versions:set -DnewVersion=${{ steps.changelog.outputs.version }} -DgenerateBackupPoms=false
 
       - name: Commit release version, tag, and push
@@ -103,7 +102,6 @@ jobs:
           git push origin "${{ steps.changelog.outputs.tag }}"
 
       - name: Set next SNAPSHOT version
-        if: inputs.dry-run != true
         run: mvn -B versions:set -DnewVersion=${{ steps.snapshot.outputs.next-snapshot }} -DgenerateBackupPoms=false
 
       - name: Commit next SNAPSHOT version
