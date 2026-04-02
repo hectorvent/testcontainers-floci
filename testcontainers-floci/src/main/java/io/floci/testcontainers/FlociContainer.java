@@ -27,6 +27,9 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("hectorvent/floci");
     private static final String DEFAULT_TAG = "latest";
 
+    /**
+     * Default port used to startup Floci container
+     */
     public static final int PORT = 4566;
 
     private static final String DEFAULT_REGION = "us-east-1";
