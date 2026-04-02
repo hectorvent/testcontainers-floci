@@ -3,7 +3,7 @@ updates:
   - package-ecosystem: maven
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     open-pull-requests-limit: 10
     labels:
       - dependencies
@@ -14,7 +14,7 @@ updates:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
     schedule:
-      interval: weekly
+      interval: daily
     open-pull-requests-limit: 10
     labels:
       - dependencies
@@ -22,7 +22,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: daily
     open-pull-requests-limit: 5
     labels:
       - dependencies
@@ -34,7 +34,7 @@ updates:
       - dependency-name: "*"
         update-types: [ "version-update:semver-major" ]
     schedule:
-      interval: weekly
+      interval: daily
     open-pull-requests-limit: 5
     labels:
       - dependencies
