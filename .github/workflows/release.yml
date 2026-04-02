@@ -77,7 +77,6 @@ jobs:
           skip-tag: 'true'
           git-push: 'false'
           fallback-version: ${{ steps.current.outputs.fallback }}
-          pre-changelog-generation: .github/scripts/pre-changelog.js
         env:
           CURRENT_MAJOR: ${{ steps.current.outputs.major }}
           CURRENT_MINOR: ${{ steps.current.outputs.minor }}
