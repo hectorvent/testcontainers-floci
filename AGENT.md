@@ -20,8 +20,8 @@ Requires Docker running for integration tests.
 ## Key Tech
 
 - Java 17, Maven multi-module
-- Testcontainers 2.x, Spring Boot 4.0.x, Spring Cloud AWS 4.0.x
-- Conventional commits → release-please for versioning
+- Testcontainers 2.x, Spring Boot 4.x, Spring Cloud AWS 4.x
+- Conventional commits → softprops/action-gh-release for versioning
 - Publishes to Maven Central (GPG signed)
 
 ## Conventions

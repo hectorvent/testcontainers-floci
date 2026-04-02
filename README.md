@@ -173,12 +173,12 @@ S3, SQS, SNS, DynamoDB, DynamoDB Streams, KMS, Kinesis, Secrets Manager, IAM, ST
 
 ## spring-boot-testcontainers-floci
 
-This module integrates `FlociContainer` with [Spring Boot](https://spring.io/projects/spring-boot) 4 and [Spring Cloud AWS](https://docs.awspring.io/spring-cloud-aws/docs/4.0.0/reference/html/index.html) 4 via the `@ServiceConnection` annotation. When a `FlociContainer` is declared as a service connection, **all Spring Cloud AWS clients are automatically configured** to use the Floci instance — no manual endpoint, credentials, or region configuration needed.
+This module integrates `FlociContainer` with [Spring Boot](https://spring.io/projects/spring-boot) and [Spring Cloud AWS](https://awspring.io/) via the `@ServiceConnection` annotation. When a `FlociContainer` is declared as a service connection, **all Spring Cloud AWS clients are automatically configured** to use the Floci instance — no manual endpoint, credentials, or region configuration needed.
 
 ### What it does
 
 - Produces `AwsConnectionDetails` from `FlociContainer`, which Spring Cloud AWS uses to auto-configure endpoint, region, and credentials on all AWS SDK clients
-- Automatically enables S3 path-style access (required for local emulators)
+- Automatically enables S3 path-style access on your `S3Client` (required for `Floci`)
 
 ### Installation
 
@@ -327,12 +327,12 @@ class FlociTestConfig {
 
 This project uses [Conventional Commits](https://www.conventionalcommits.org/). Commit messages determine the release version automatically:
 
-| Prefix | Version bump | Example |
-|--------|-------------|---------|
-| `fix:` | Patch (0.1.0 → 0.1.1) | `fix: handle null region gracefully` |
-| `feat:` | Minor (0.1.0 → 0.2.0) | `feat: add withServices() configuration` |
-| `feat!:` or `BREAKING CHANGE:` | Major (0.1.0 → 1.0.0) | `feat!: rename FlociContainer API` |
-| `chore:`, `docs:`, `ci:` | No release | `docs: update README examples` |
+| Prefix | Version bump | Example                                     |
+|--------|-------------|---------------------------------------------|
+| `fix:` | Patch (0.1.0 → 0.1.1) | `fix: handle null region gracefully`        |
+| `feat:` | Minor (0.1.0 → 0.2.0) | `feat: add withServices() configuration`    |
+| `feat!:` or `BREAKING CHANGE:` | Major (0.1.0 → 1.0.0) | `feat!: use next Spring Boot major version` |
+| `chore:`, `docs:`, `ci:` | No release | `docs: update README examples`              |
 
 ## License
 
