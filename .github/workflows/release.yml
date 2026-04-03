@@ -45,7 +45,7 @@ jobs:
       - name: Detect version from latest git tag
         id: current
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 --match 'v[0-9]*' 2>/dev/null || echo "")
+          LAST_TAG=$(git describe --tags --abbrev=0 --match "v[0-9]*" 2>/dev/null || echo "")
           FALLBACK_INPUT="${{ inputs.fallback-version }}"
 
           if [ -n "$LAST_TAG" ]; then
