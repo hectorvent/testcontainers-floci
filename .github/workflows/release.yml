@@ -135,7 +135,7 @@ jobs:
           echo "#### Changelog" >> "$GITHUB_STEP_SUMMARY"
           echo "${{ steps.changelog.outputs.clean_changelog }}" >> "$GITHUB_STEP_SUMMARY"
 
-  # Step 2: Build from tag, publish to Maven Central, upload artifacts to GitHub Release
+  # Step 2: Build from tag and publish to Maven Central
   publish:
     needs: prepare
     if: inputs.dry-run != true
@@ -165,20 +165,6 @@ jobs:
           MAVEN_CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           MAVEN_CENTRAL_PASSWORD: ${{ secrets.CENTRAL_TOKEN }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-
-      - name: Collect release artifacts
-        run: |
-          mkdir -p staging
-          find . -path '*/target/*.jar' -not -name '*-sources.jar' -not -name '*-javadoc.jar' \
-            -not -name 'original-*' | while read f; do cp "$f" staging/; done
-          find . -path '*/target/*-sources.jar' | while read f; do cp "$f" staging/; done
-          find . -path '*/target/*-javadoc.jar' | while read f; do cp "$f" staging/; done
-
-      - name: Upload artifacts to GitHub Release
-        uses: softprops/action-gh-release@153bb8e04406b158c6c84fc1615b65b24149a1fe # v2.6.1
-        with:
-          tag_name: ${{ needs.prepare.outputs.tag }}
-          files: staging/*
 
   # Step 3: Run security scanners against the release tag
   security-scan:
