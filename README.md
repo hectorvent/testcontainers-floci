@@ -1,7 +1,6 @@
 # Testcontainers Floci
 
 [![CI](https://github.com/floci-io/testcontainers-floci/actions/workflows/ci.yml/badge.svg)](https://github.com/floci-io/testcontainers-floci/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/io.floci/testcontainers-floci)](https://central.sonatype.com/artifact/io.floci/testcontainers-floci)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [Testcontainers](https://testcontainers.com/) module for [Floci](https://github.com/hectorvent/floci) — a free, open-source local AWS emulator.
@@ -22,10 +21,10 @@ Floci provides a single Docker container that emulates 19+ AWS services (S3, SQS
 
 ## Version Compatibility
 
-| testcontainers-floci | Spring Boot | Spring Cloud AWS | Testcontainers |
-|----------------------|-------------|------------------|----------------|
-| **2.x**              | 4.0.x       | 4.0.x            | 2.x            |
-| **1.x**              | 3.5.x       | 3.4.x            | 1.x            |
+| testcontainers-floci | Spring Boot | Spring Cloud AWS | Testcontainers | Release badges                                                                                                                                                                       |
+|----------------------|-------------|------------------|----------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **2.x**              | 4.0.x       | 4.0.x            | 2.x            | [![Maven Central](https://img.shields.io/maven-central/v/io.floci/testcontainers-floci)](https://central.sonatype.com/artifact/io.floci/testcontainers-floci)                        |
+| **1.x**              | 3.5.x       | 3.4.x            | 1.x            | [![Maven Central](https://img.shields.io/maven-central/v/io.floci/testcontainers-floci?filter=1.*)](https://img.shields.io/maven-central/v/io.floci/testcontainers-floci?filter=1.*) |
 
 ---
 
