@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <name>Testcontainers Floci Parent</name>
-    <description>Testcontainers module for Floci — a free, open-source local AWS emulator</description>
+    <description>Parent of Testcontainers modules for Floci — a free, open-source local AWS emulator</description>
     <url>https://github.com/floci-io/testcontainers-floci</url>
 
     <licenses>
