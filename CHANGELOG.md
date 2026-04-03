@@ -1,4 +1,13 @@
-# 2.0.0 (2026-04-03)
+## [2.0.1](https://github.com/floci-io/testcontainers-floci/compare/v2.0.0...v2.0.1) (2026-04-03)
+
+
+### Bug Fixes
+
+* do auto-configuration for S3Client only if AWS S3 sdk dependency is on classpath ([45ca8b3](https://github.com/floci-io/testcontainers-floci/commit/45ca8b399122ecb778115161cd446b469e3779ef))
+
+
+
+# [2.0.0](https://github.com/floci-io/testcontainers-floci/compare/5f1305cb5823ff6fe90793df1fa2682ad204e961...v2.0.0) (2026-04-03)
 
 
 ### Bug Fixes
