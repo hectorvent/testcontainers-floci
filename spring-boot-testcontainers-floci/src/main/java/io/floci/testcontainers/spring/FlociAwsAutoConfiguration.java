@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
 
 /**
  * Auto-configuration that customizes Spring Cloud AWS clients when a Floci
@@ -18,7 +19,7 @@ import org.springframework.context.annotation.Bean;
  * bucket addressing.
  */
 @AutoConfiguration
-@ConditionalOnClass(S3ClientCustomizer.class)
+@ConditionalOnClass({S3ClientCustomizer.class, S3ClientBuilder.class})
 @ConditionalOnBean(AwsConnectionDetails.class)
 @AutoConfigureAfter(S3AutoConfiguration.class)
 public class FlociAwsAutoConfiguration {
