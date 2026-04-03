@@ -12,4 +12,3 @@
 * updated version to 2.x to show compatibility to Spring Boot 4.0.x / Spring Cloud AWS 4.0.x / Testcontainers 2.x ([57e840e](https://github.com/floci-io/testcontainers-floci/commit/57e840e462055d7b86b643c48ccd8bdb6cd3a00e))
 
 
-
