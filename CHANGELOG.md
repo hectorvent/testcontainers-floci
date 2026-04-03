@@ -1,4 +1,13 @@
-# 1.0.0 (2026-04-03)
+## [1.0.1](https://github.com/floci-io/testcontainers-floci/compare/v1.0.0...v1.0.1) (2026-04-03)
+
+
+### Bug Fixes
+
+* do auto-configuration for S3Client only if AWS S3 sdk dependency is on classpath ([b59a432](https://github.com/floci-io/testcontainers-floci/commit/b59a432b0fff8c0fb98ab21a18967b7df068f291))
+
+
+
+# [1.0.0](https://github.com/floci-io/testcontainers-floci/compare/5f1305cb5823ff6fe90793df1fa2682ad204e961...v1.0.0) (2026-04-03)
 
 
 ### Bug Fixes
@@ -10,5 +19,6 @@
 
 * initial implementation of testcontainers-floci ([5f1305c](https://github.com/floci-io/testcontainers-floci/commit/5f1305cb5823ff6fe90793df1fa2682ad204e961))
 * updated version to 2.x to show compatibility to Spring Boot 4.0.x / Spring Cloud AWS 4.0.x / Testcontainers 2.x ([57e840e](https://github.com/floci-io/testcontainers-floci/commit/57e840e462055d7b86b643c48ccd8bdb6cd3a00e))
+
 
 
