@@ -2,7 +2,7 @@
 
 ## Project
 
-Testcontainers module for [Floci](https://github.com/hectorvent/floci) — a local AWS emulator (port 4566, 19+ services).
+Testcontainers module for [Floci](https://github.com/floci-io/floci) — a local AWS emulator (port 4566, 19+ services).
 
 ## Structure
 
