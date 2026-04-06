@@ -1,6 +1,7 @@
 package io.floci.testcontainers;
 
 import io.floci.testcontainers.config.LambdaConfig;
+import io.floci.testcontainers.config.RdsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -56,6 +57,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private static final String DEFAULT_SECRET_KEY = "test";
 
     private LambdaConfig lambdaConfig = LambdaConfig.builder().build();
+    private RdsConfig rdsConfig = RdsConfig.builder().build();
 
     /**
      * Creates a new Floci container with the default image ({@code hectorvent/floci:latest}).
@@ -92,6 +94,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
 
         configureExposedPorts();
         configureLambda();
+        configureRds();
 
         // Bugfix to make it work on podman - fixed by PR https://github.com/floci-io/floci/pull/343
         withCopyToContainer(Transferable.of(""), "/.dockerenv");
@@ -220,6 +223,37 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
+     * RDS-specific settings such as proxy ports and default database images.
+     *
+     * @return the RDS configuration
+     */
+    public RdsConfig getRdsConfig() {
+        return rdsConfig;
+    }
+
+    /**
+     * Configures RDS-specific settings such as proxy ports and default database images.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withRdsConfig(c -> c
+     *         .proxyPortRange(7000, 7099)
+     *         .defaultPostgresImage("postgres:16-alpine"));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link RdsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withRdsConfig(Consumer<RdsConfig.Builder> configurer) {
+        RdsConfig.Builder builder = RdsConfig.builder();
+        configurer.accept(builder);
+        this.rdsConfig = builder.build();
+        configureExposedPorts();
+        configureRds();
+        return this;
+    }
+
+    /**
      * Configures all exposed ports of the Floci container
      */
     private void configureExposedPorts() {
@@ -228,6 +262,13 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         if (lambdaConfig.isEnabled() && lambdaConfig.isExposeRuntimePorts()) {
             // Expose ports of Lambda runtimes to make them accessible by the user
             for (int port = lambdaConfig.getRuntimeApiBasePort(); port <= lambdaConfig.getRuntimeApiMaxPort(); port++) {
+                addExposedPorts(port);
+            }
+        }
+
+        if (rdsConfig.isEnabled()) {
+            // Expose ports of RDS to make them accessible by the user
+            for (int port = rdsConfig.getProxyBasePort(); port <= rdsConfig.getProxyMaxPort(); port++) {
                 addExposedPorts(port);
             }
         }
@@ -250,6 +291,25 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
 
             if (lambdaConfig.getDockerNetwork() != null) {
                 withEnv("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", lambdaConfig.getDockerNetwork());
+            }
+        }
+    }
+
+    /**
+     * Applies RDS configuration
+     */
+    private void configureRds() {
+        withEnv("FLOCI_SERVICES_RDS_ENABLED", String.valueOf(rdsConfig.isEnabled()));
+
+        if (rdsConfig.isEnabled()) {
+            withEnv("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", String.valueOf(rdsConfig.getProxyBasePort()));
+            withEnv("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", String.valueOf(rdsConfig.getProxyMaxPort()));
+            withEnv("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", rdsConfig.getDefaultPostgresImage());
+            withEnv("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", rdsConfig.getDefaultMysqlImage());
+            withEnv("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", rdsConfig.getDefaultMariadbImage());
+
+            if (rdsConfig.getDockerNetwork() != null) {
+                withEnv("FLOCI_SERVICES_RDS_DOCKER_NETWORK", rdsConfig.getDockerNetwork());
             }
         }
     }

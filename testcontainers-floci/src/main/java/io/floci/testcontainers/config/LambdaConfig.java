@@ -20,7 +20,7 @@ public class LambdaConfig {
     private static final int DEFAULT_MEMORY_MB = 128;
     private static final int DEFAULT_TIMEOUT_SECONDS = 3;
     private static final int DEFAULT_RUNTIME_API_BASE_PORT = 9200;
-    private static final int DEFAULT_RUNTIME_API_PORTS_COUNT = 100;
+    private static final int DEFAULT_RUNTIME_API_PORTS_COUNT = 10;
     private static final int DEFAULT_POLL_INTERVAL_MS = 1000;
     private static final int DEFAULT_CONTAINER_IDLE_TIMEOUT_SECONDS = 300;
 
