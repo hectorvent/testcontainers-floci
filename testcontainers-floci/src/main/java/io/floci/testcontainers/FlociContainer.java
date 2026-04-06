@@ -62,9 +62,8 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         dockerImageName.assertCompatibleWith(DEFAULT_IMAGE_NAME);
         withExposedPorts(PORT);
         withTmpFs(Map.of("/app/data", "rw"));
-        waitingFor(Wait.forHttp("/")
+        waitingFor(Wait.forHttp("/_floci/health")
                 .forPort(PORT)
-                .forStatusCodeMatching(code -> code < 500)
                 .withStartupTimeout(Duration.ofSeconds(30)));
     }
 
