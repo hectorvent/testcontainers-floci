@@ -155,6 +155,7 @@ class S3IntegrationTest {
 | `withLogLevel(Level)`    | Sets the Floci log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)                                           |
 | `withDedicatedNetwork()` | Creates a dedicated Docker network shared by Floci and its sibling containers (RDS, Lambda, ElastiCache, etc.) |
 | `withLambdaConfig(...)`  | Configures Lambda-specific settings (see [Lambda Configuration](https://floci.io/floci/services/lambda/))      |
+| `withRdsConfig(...)`     | Configures RDS-specific settings (see [RDS Configuration](https://floci.io/floci/services/rds/))               |
 
 ### Container Properties
 
@@ -167,6 +168,7 @@ class S3IntegrationTest {
 | `getLogLevel()`              | Configured log level                                               | `WARN`     |
 | `getDedicatedNetworkName()`  | Name of the dedicated Docker network, or `null` if not configured  | `null`     |
 | `getLambdaConfig()`          | Current Lambda configuration                                       | —          |
+| `getRdsConfig()`             | Current RDS configuration                                          | —          |
 
 ---
 
