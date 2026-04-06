@@ -3,7 +3,7 @@
 [![CI](https://github.com/floci-io/testcontainers-floci/actions/workflows/ci.yml/badge.svg)](https://github.com/floci-io/testcontainers-floci/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[Testcontainers](https://testcontainers.com/) module for [Floci](https://github.com/hectorvent/floci) — a free, open-source local AWS emulator.
+[Testcontainers](https://testcontainers.com/) module for [Floci](https://github.com/floci-io/floci) — a free, open-source local AWS emulator.
 
 Floci provides a single Docker container that emulates 19+ AWS services (S3, SQS, DynamoDB, Lambda, and more) on a single endpoint, making it ideal for integration testing.
 

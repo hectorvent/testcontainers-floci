@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.util.Map;
 
 /**
- * Testcontainers module for <a href="https://github.com/hectorvent/floci">Floci</a> — a
+ * Testcontainers module for <a href="https://github.com/floci-io/floci">Floci</a> — a
  * free, open-source local AWS emulator.
  *
  * <p>Starts a Floci container that exposes all emulated AWS services on a single HTTP
