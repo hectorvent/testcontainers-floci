@@ -1,5 +1,8 @@
 package io.floci.testcontainers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
@@ -23,6 +26,8 @@ import java.util.Map;
  * }</pre>
  */
 public class FlociContainer extends GenericContainer<FlociContainer> {
+
+    private static final Logger logger = LoggerFactory.getLogger(FlociContainer.class);
 
     private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("hectorvent/floci");
     private static final String DEFAULT_TAG = "latest";
@@ -62,6 +67,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         dockerImageName.assertCompatibleWith(DEFAULT_IMAGE_NAME);
         withExposedPorts(PORT);
         withTmpFs(Map.of("/app/data", "rw"));
+        withLogLevel(Level.WARN);
         waitingFor(Wait.forHttp("/_floci/health")
                 .forPort(PORT)
                 .withStartupTimeout(Duration.ofSeconds(30)));
@@ -111,5 +117,30 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
      */
     public FlociContainer withRegion(String region) {
         return withEnv("FLOCI_DEFAULT_REGION", region);
+    }
+
+    /**
+     * Sets the log level for this Floci instance. Defaults to {@link Level#WARN}.
+     *
+     * @param logLevel the log level
+     * @return this container instance
+     */
+    public FlociContainer withLogLevel(Level logLevel) {
+        return withEnv("QUARKUS_LOG_CATEGORY__IO_GITHUB_HECTORVENT__LEVEL", logLevel.toString());
+    }
+
+    /**
+     * Returns the log level configured for this Floci instance. Defaults to {@link Level#WARN}.
+     *
+     * @return the log level
+     */
+    public Level getLogLevel() {
+        String logLevelStr = getEnvMap().getOrDefault("QUARKUS_LOG_CATEGORY__IO_GITHUB_HECTORVENT__LEVEL", "WARN");
+        try {
+            return Level.valueOf(logLevelStr);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid log level '{}' in environment variable, defaulting to WARN", logLevelStr);
+            return Level.WARN;
+        }
     }
 }
