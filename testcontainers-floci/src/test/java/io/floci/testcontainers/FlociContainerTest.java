@@ -1,6 +1,7 @@
 package io.floci.testcontainers;
 
 import org.junit.jupiter.api.Test;
+import org.slf4j.event.Level;
 import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +49,29 @@ class FlociContainerTest {
     void shouldExposeFlociPort() {
         try (FlociContainer container = new FlociContainer()) {
             assertThat(container.getExposedPorts()).containsOnly(FlociContainer.PORT);
+        }
+    }
+
+    @Test
+    void shouldReturnDefaultLogLevel() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getLogLevel()).isEqualTo(Level.WARN);
+        }
+    }
+
+    @Test
+    void shouldReturnCustomLogLevel() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withLogLevel(Level.DEBUG);
+            assertThat(container.getLogLevel()).isEqualTo(Level.DEBUG);
+        }
+    }
+
+    @Test
+    void shouldFallbackToWarnForInvalidLogLevel() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withEnv("QUARKUS_LOG_CATEGORY__IO_GITHUB_HECTORVENT__LEVEL", "INVALID");
+            assertThat(container.getLogLevel()).isEqualTo(Level.WARN);
         }
     }
 
