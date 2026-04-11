@@ -16,7 +16,8 @@ class LambdaConfigTest {
         assertThat(config.getDefaultTimeoutSeconds()).isEqualTo(3);
         assertThat(config.getDockerNetwork()).isNull();
         assertThat(config.getRuntimeApiBasePort()).isEqualTo(9200);
-        assertThat(config.getRuntimeApiPortsCount()).isEqualTo(100);
+        assertThat(config.getRuntimeApiMaxPort()).isEqualTo(9209);
+        assertThat(config.getRuntimeApiPortsCount()).isEqualTo(10);
         assertThat(config.getPollIntervalMs()).isEqualTo(1000);
         assertThat(config.getContainerIdleTimeoutSeconds()).isEqualTo(300);
     }
@@ -41,6 +42,7 @@ class LambdaConfigTest {
         assertThat(config.getDefaultTimeoutSeconds()).isEqualTo(10);
         assertThat(config.getDockerNetwork()).isEqualTo("my-network");
         assertThat(config.getRuntimeApiBasePort()).isEqualTo(9300);
+        assertThat(config.getRuntimeApiMaxPort()).isEqualTo(9349);
         assertThat(config.getRuntimeApiPortsCount()).isEqualTo(50);
         assertThat(config.getPollIntervalMs()).isEqualTo(500);
         assertThat(config.getContainerIdleTimeoutSeconds()).isEqualTo(600);

@@ -118,7 +118,7 @@ class FlociContainerTest {
                 assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DEFAULT_MEMORY_MB", "128");
                 assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DEFAULT_TIMEOUT_SECONDS", "3");
                 assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_BASE_PORT", "9200");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", "9299");
+                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", "9209");
                 assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", "1000");
                 assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", "300");
                 assertThat(env).doesNotContainKey("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK");
@@ -173,7 +173,6 @@ class FlociContainerTest {
                         .runtimeApiPortRange(9300, 10));
 
                 assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "false");
-                // Only the default ports should be exposed, not the runtime API ports
                 assertThat(container.getExposedPorts()).doesNotContain(9300);
             }
         }
@@ -187,6 +186,80 @@ class FlociContainerTest {
 
                 assertThat(container.getLambdaConfig().getDefaultMemoryMb()).isEqualTo(512);
                 assertThat(container.getLambdaConfig().isEphemeral()).isTrue();
+            }
+        }
+    }
+
+    @Nested
+    class RdsService {
+        @Test
+        void shouldConfigureRdsWithDefaultValues() {
+            try (FlociContainer container = new FlociContainer()) {
+                container.withRdsConfig(c -> {});
+
+                var env = container.getEnvMap();
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", "7000");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", "7009");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", "postgres:16-alpine");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", "mysql:8.0");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", "mariadb:11");
+                assertThat(env).doesNotContainKey("FLOCI_SERVICES_RDS_DOCKER_NETWORK");
+            }
+        }
+
+        @Test
+        void shouldConfigureRdsWithCustomValues() {
+            try (FlociContainer container = new FlociContainer()) {
+                container.withRdsConfig(c -> c
+                        .enabled(true)
+                        .proxyPortRange(8000, 100)
+                        .defaultPostgresImage("postgres:15")
+                        .defaultMysqlImage("mysql:9.0")
+                        .defaultMariadbImage("mariadb:10")
+                        .dockerNetwork("my-rds-network"));
+
+                var env = container.getEnvMap();
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", "8000");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", "8099");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", "postgres:15");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", "mysql:9.0");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", "mariadb:10");
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DOCKER_NETWORK", "my-rds-network");
+            }
+        }
+
+        @Test
+        void shouldNotSetRdsEnvVarsWhenDisabled() {
+            try (FlociContainer container = new FlociContainer()) {
+                container.withRdsConfig(c -> c.enabled(false).proxyPortRange(8000, 100));
+
+                var env = container.getEnvMap();
+                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "false");
+                assertThat(container.getExposedPorts()).doesNotContain(8000);
+            }
+        }
+
+        @Test
+        void shouldStoreRdsConfigOnContainer() {
+            try (FlociContainer container = new FlociContainer()) {
+                container.withRdsConfig(c -> c
+                        .defaultPostgresImage("postgres:15")
+                        .proxyPortRange(8000, 100));
+
+                assertThat(container.getRdsConfig().getDefaultPostgresImage()).isEqualTo("postgres:15");
+                assertThat(container.getRdsConfig().getProxyBasePort()).isEqualTo(8000);
+                assertThat(container.getRdsConfig().getProxyPortsCount()).isEqualTo(100);
+            }
+        }
+
+        @Test
+        void shouldReturnContainerFromWithRdsConfig() {
+            try (FlociContainer container = new FlociContainer()) {
+                FlociContainer result = container.withRdsConfig(c -> c
+                        .proxyPortRange(8000, 100));
+                assertThat(result).isSameAs(container);
             }
         }
     }
