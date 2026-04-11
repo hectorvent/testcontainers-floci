@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for EventBridge-specific container settings.
@@ -14,7 +14,6 @@ import org.testcontainers.containers.GenericContainer;
 public class EventBridgeConfig extends AbstractServiceConfig {
 
 
-
     private EventBridgeConfig(Builder builder) {
         super(builder.enabled);
     }
@@ -25,7 +24,7 @@ public class EventBridgeConfig extends AbstractServiceConfig {
 
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_EVENTBRIDGE_ENABLED", String.valueOf(isEnabled()));
     }
 

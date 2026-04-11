@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 import static io.floci.testcontainers.testing.ContainerUtils.genericContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.testcontainers.containers.GenericContainer;
-import io.floci.testcontainers.FlociContainer;
 
 class CloudWatchMetricsConfigTest {
 
@@ -26,7 +25,7 @@ class CloudWatchMetricsConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        CloudWatchMetricsConfig.builder().build().applyToContainer(container);
+        CloudWatchMetricsConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_CLOUDWATCHMETRICS_ENABLED", "true");
     }
@@ -34,7 +33,7 @@ class CloudWatchMetricsConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        CloudWatchMetricsConfig.builder().enabled(false).build().applyToContainer(container);
+        CloudWatchMetricsConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_CLOUDWATCHMETRICS_ENABLED", "false");
     }

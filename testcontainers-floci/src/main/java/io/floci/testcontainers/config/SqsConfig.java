@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for SQS-specific container settings.
@@ -51,7 +51,7 @@ public class SqsConfig extends AbstractServiceConfig {
     }
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_SQS_ENABLED", String.valueOf(isEnabled()));
 
         if (isEnabled()) {

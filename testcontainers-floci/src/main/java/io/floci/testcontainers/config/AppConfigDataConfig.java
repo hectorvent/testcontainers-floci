@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for AppConfig Data-specific container settings.
@@ -14,7 +14,6 @@ import org.testcontainers.containers.GenericContainer;
 public class AppConfigDataConfig extends AbstractServiceConfig {
 
 
-
     private AppConfigDataConfig(Builder builder) {
         super(builder.enabled);
     }
@@ -25,7 +24,7 @@ public class AppConfigDataConfig extends AbstractServiceConfig {
 
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_APPCONFIGDATA_ENABLED", String.valueOf(isEnabled()));
     }
 

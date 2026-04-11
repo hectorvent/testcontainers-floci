@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for AppConfig-specific container settings.
@@ -14,7 +14,6 @@ import org.testcontainers.containers.GenericContainer;
 public class AppConfigConfig extends AbstractServiceConfig {
 
 
-
     private AppConfigConfig(Builder builder) {
         super(builder.enabled);
     }
@@ -25,7 +24,7 @@ public class AppConfigConfig extends AbstractServiceConfig {
 
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_APPCONFIG_ENABLED", String.valueOf(isEnabled()));
     }
 

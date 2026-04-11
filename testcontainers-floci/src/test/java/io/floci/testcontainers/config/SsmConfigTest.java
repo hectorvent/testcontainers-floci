@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -29,7 +28,7 @@ class SsmConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        SsmConfig.builder().build().applyToContainer(container);
+        SsmConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_SSM_ENABLED", "true")
@@ -42,7 +41,7 @@ class SsmConfigTest {
         SsmConfig.builder()
                 .maxParameterHistory(10)
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_SSM_MAX_PARAMETER_HISTORY", "10");
     }
@@ -50,7 +49,7 @@ class SsmConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        SsmConfig.builder().enabled(false).build().applyToContainer(container);
+        SsmConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_SSM_ENABLED", "false");
     }

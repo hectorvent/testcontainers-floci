@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -26,7 +25,7 @@ class StepFunctionsConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        StepFunctionsConfig.builder().build().applyToContainer(container);
+        StepFunctionsConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_STEPFUNCTIONS_ENABLED", "true");
     }
@@ -34,7 +33,7 @@ class StepFunctionsConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        StepFunctionsConfig.builder().enabled(false).build().applyToContainer(container);
+        StepFunctionsConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_STEPFUNCTIONS_ENABLED", "false");
     }

@@ -141,32 +141,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
                 .withStartupTimeout(Duration.ofSeconds(30)));
 
         configureExposedPorts();
-
-        acmConfig.applyToContainer(this);
-        apiGatewayConfig.applyToContainer(this);
-        apiGatewayV2Config.applyToContainer(this);
-        appConfigConfig.applyToContainer(this);
-        appConfigDataConfig.applyToContainer(this);
-        cloudFormationConfig.applyToContainer(this);
-        cloudWatchLogsConfig.applyToContainer(this);
-        cloudWatchMetricsConfig.applyToContainer(this);
-        cognitoConfig.applyToContainer(this);
-        dynamoDbConfig.applyToContainer(this);
-        ec2Config.applyToContainer(this);
-        eventBridgeConfig.applyToContainer(this);
-        iamConfig.applyToContainer(this);
-        kinesisConfig.applyToContainer(this);
-        kmsConfig.applyToContainer(this);
-        lambdaConfig.applyToContainer(this);
-        rdsConfig.applyToContainer(this);
-        s3Config.applyToContainer(this);
-        schedulerConfig.applyToContainer(this);
-        secretsManagerConfig.applyToContainer(this);
-        sesConfig.applyToContainer(this);
-        snsConfig.applyToContainer(this);
-        sqsConfig.applyToContainer(this);
-        ssmConfig.applyToContainer(this);
-        stepFunctionsConfig.applyToContainer(this);
+        configureEnvVars();
 
         // Bugfix to make it work on podman - fixed by PR https://github.com/floci-io/floci/pull/343
         withCopyToContainer(Transferable.of(""), "/.dockerenv");
@@ -327,7 +302,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         AcmConfig.Builder builder = AcmConfig.builder();
         configurer.accept(builder);
         this.acmConfig = builder.build();
-        acmConfig.applyToContainer(this);
+        acmConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -355,7 +330,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         ApiGatewayConfig.Builder builder = ApiGatewayConfig.builder();
         configurer.accept(builder);
         this.apiGatewayConfig = builder.build();
-        apiGatewayConfig.applyToContainer(this);
+        apiGatewayConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -383,7 +358,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         ApiGatewayV2Config.Builder builder = ApiGatewayV2Config.builder();
         configurer.accept(builder);
         this.apiGatewayV2Config = builder.build();
-        apiGatewayV2Config.applyToContainer(this);
+        apiGatewayV2Config.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -411,7 +386,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         AppConfigConfig.Builder builder = AppConfigConfig.builder();
         configurer.accept(builder);
         this.appConfigConfig = builder.build();
-        appConfigConfig.applyToContainer(this);
+        appConfigConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -439,7 +414,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         AppConfigDataConfig.Builder builder = AppConfigDataConfig.builder();
         configurer.accept(builder);
         this.appConfigDataConfig = builder.build();
-        appConfigDataConfig.applyToContainer(this);
+        appConfigDataConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -467,7 +442,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         CloudFormationConfig.Builder builder = CloudFormationConfig.builder();
         configurer.accept(builder);
         this.cloudFormationConfig = builder.build();
-        cloudFormationConfig.applyToContainer(this);
+        cloudFormationConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -495,7 +470,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         CloudWatchLogsConfig.Builder builder = CloudWatchLogsConfig.builder();
         configurer.accept(builder);
         this.cloudWatchLogsConfig = builder.build();
-        cloudWatchLogsConfig.applyToContainer(this);
+        cloudWatchLogsConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -523,7 +498,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         CloudWatchMetricsConfig.Builder builder = CloudWatchMetricsConfig.builder();
         configurer.accept(builder);
         this.cloudWatchMetricsConfig = builder.build();
-        cloudWatchMetricsConfig.applyToContainer(this);
+        cloudWatchMetricsConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -551,7 +526,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         CognitoConfig.Builder builder = CognitoConfig.builder();
         configurer.accept(builder);
         this.cognitoConfig = builder.build();
-        cognitoConfig.applyToContainer(this);
+        cognitoConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -579,7 +554,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         DynamoDbConfig.Builder builder = DynamoDbConfig.builder();
         configurer.accept(builder);
         this.dynamoDbConfig = builder.build();
-        dynamoDbConfig.applyToContainer(this);
+        dynamoDbConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -607,7 +582,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         Ec2Config.Builder builder = Ec2Config.builder();
         configurer.accept(builder);
         this.ec2Config = builder.build();
-        ec2Config.applyToContainer(this);
+        ec2Config.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -635,7 +610,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         EventBridgeConfig.Builder builder = EventBridgeConfig.builder();
         configurer.accept(builder);
         this.eventBridgeConfig = builder.build();
-        eventBridgeConfig.applyToContainer(this);
+        eventBridgeConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -663,7 +638,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         IamConfig.Builder builder = IamConfig.builder();
         configurer.accept(builder);
         this.iamConfig = builder.build();
-        iamConfig.applyToContainer(this);
+        iamConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -691,7 +666,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         KinesisConfig.Builder builder = KinesisConfig.builder();
         configurer.accept(builder);
         this.kinesisConfig = builder.build();
-        kinesisConfig.applyToContainer(this);
+        kinesisConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -719,7 +694,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         KmsConfig.Builder builder = KmsConfig.builder();
         configurer.accept(builder);
         this.kmsConfig = builder.build();
-        kmsConfig.applyToContainer(this);
+        kmsConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -748,7 +723,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         configurer.accept(builder);
         this.lambdaConfig = builder.build();
         configureExposedPorts();
-        lambdaConfig.applyToContainer(this);
+        lambdaConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -779,7 +754,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         configurer.accept(builder);
         this.rdsConfig = builder.build();
         configureExposedPorts();
-        rdsConfig.applyToContainer(this);
+        rdsConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -807,7 +782,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         S3Config.Builder builder = S3Config.builder();
         configurer.accept(builder);
         this.s3Config = builder.build();
-        s3Config.applyToContainer(this);
+        s3Config.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -835,7 +810,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         SchedulerConfig.Builder builder = SchedulerConfig.builder();
         configurer.accept(builder);
         this.schedulerConfig = builder.build();
-        schedulerConfig.applyToContainer(this);
+        schedulerConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -863,7 +838,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         SecretsManagerConfig.Builder builder = SecretsManagerConfig.builder();
         configurer.accept(builder);
         this.secretsManagerConfig = builder.build();
-        secretsManagerConfig.applyToContainer(this);
+        secretsManagerConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -891,7 +866,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         SesConfig.Builder builder = SesConfig.builder();
         configurer.accept(builder);
         this.sesConfig = builder.build();
-        sesConfig.applyToContainer(this);
+        sesConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -919,7 +894,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         SnsConfig.Builder builder = SnsConfig.builder();
         configurer.accept(builder);
         this.snsConfig = builder.build();
-        snsConfig.applyToContainer(this);
+        snsConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -947,7 +922,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         SqsConfig.Builder builder = SqsConfig.builder();
         configurer.accept(builder);
         this.sqsConfig = builder.build();
-        sqsConfig.applyToContainer(this);
+        sqsConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -975,7 +950,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         SsmConfig.Builder builder = SsmConfig.builder();
         configurer.accept(builder);
         this.ssmConfig = builder.build();
-        ssmConfig.applyToContainer(this);
+        ssmConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -1003,7 +978,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         StepFunctionsConfig.Builder builder = StepFunctionsConfig.builder();
         configurer.accept(builder);
         this.stepFunctionsConfig = builder.build();
-        stepFunctionsConfig.applyToContainer(this);
+        stepFunctionsConfig.applyEnvVarsToContainer(this);
         return this;
     }
     /**
@@ -1012,19 +987,39 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private void configureExposedPorts() {
         withExposedPorts(PORT);
 
-        if (lambdaConfig.isEnabled() && lambdaConfig.isExposeRuntimePorts()) {
-            // Expose ports of Lambda runtimes to make them accessible by the user
-            for (int port = lambdaConfig.getRuntimeApiBasePort(); port <= lambdaConfig.getRuntimeApiMaxPort(); port++) {
-                addExposedPorts(port);
-            }
-        }
+        lambdaConfig.applyExposedPortsToContainer(this);
+        rdsConfig.applyExposedPortsToContainer(this);
+    }
 
-        if (rdsConfig.isEnabled()) {
-            // Expose ports of RDS to make them accessible by the user
-            for (int port = rdsConfig.getProxyBasePort(); port <= rdsConfig.getProxyMaxPort(); port++) {
-                addExposedPorts(port);
-            }
-        }
+    /**
+     * Configures environment variables for all services based on the current configuration objects.
+     */
+    private void configureEnvVars() {
+        acmConfig.applyEnvVarsToContainer(this);
+        apiGatewayConfig.applyEnvVarsToContainer(this);
+        apiGatewayV2Config.applyEnvVarsToContainer(this);
+        appConfigConfig.applyEnvVarsToContainer(this);
+        appConfigDataConfig.applyEnvVarsToContainer(this);
+        cloudFormationConfig.applyEnvVarsToContainer(this);
+        cloudWatchLogsConfig.applyEnvVarsToContainer(this);
+        cloudWatchMetricsConfig.applyEnvVarsToContainer(this);
+        cognitoConfig.applyEnvVarsToContainer(this);
+        dynamoDbConfig.applyEnvVarsToContainer(this);
+        ec2Config.applyEnvVarsToContainer(this);
+        eventBridgeConfig.applyEnvVarsToContainer(this);
+        iamConfig.applyEnvVarsToContainer(this);
+        kinesisConfig.applyEnvVarsToContainer(this);
+        kmsConfig.applyEnvVarsToContainer(this);
+        lambdaConfig.applyEnvVarsToContainer(this);
+        rdsConfig.applyEnvVarsToContainer(this);
+        s3Config.applyEnvVarsToContainer(this);
+        schedulerConfig.applyEnvVarsToContainer(this);
+        secretsManagerConfig.applyEnvVarsToContainer(this);
+        sesConfig.applyEnvVarsToContainer(this);
+        snsConfig.applyEnvVarsToContainer(this);
+        sqsConfig.applyEnvVarsToContainer(this);
+        ssmConfig.applyEnvVarsToContainer(this);
+        stepFunctionsConfig.applyEnvVarsToContainer(this);
     }
 
     private static String uniqueShortId() {

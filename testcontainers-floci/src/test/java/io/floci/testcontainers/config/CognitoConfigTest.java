@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -26,7 +25,7 @@ class CognitoConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        CognitoConfig.builder().build().applyToContainer(container);
+        CognitoConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_COGNITO_ENABLED", "true");
     }
@@ -34,7 +33,7 @@ class CognitoConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        CognitoConfig.builder().enabled(false).build().applyToContainer(container);
+        CognitoConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_COGNITO_ENABLED", "false");
     }

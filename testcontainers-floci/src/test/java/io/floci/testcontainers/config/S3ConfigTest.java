@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -29,7 +28,7 @@ class S3ConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        S3Config.builder().build().applyToContainer(container);
+        S3Config.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_S3_ENABLED", "true")
@@ -42,7 +41,7 @@ class S3ConfigTest {
         S3Config.builder()
                 .defaultPresignExpirySeconds(7200)
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_S3_DEFAULT_PRESIGN_EXPIRY_SECONDS", "7200");
     }
@@ -50,7 +49,7 @@ class S3ConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        S3Config.builder().enabled(false).build().applyToContainer(container);
+        S3Config.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_S3_ENABLED", "false");
     }
