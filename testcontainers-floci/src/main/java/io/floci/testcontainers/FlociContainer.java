@@ -1,7 +1,30 @@
 package io.floci.testcontainers;
 
+import io.floci.testcontainers.config.AcmConfig;
+import io.floci.testcontainers.config.ApiGatewayConfig;
+import io.floci.testcontainers.config.ApiGatewayV2Config;
+import io.floci.testcontainers.config.AppConfigConfig;
+import io.floci.testcontainers.config.AppConfigDataConfig;
+import io.floci.testcontainers.config.CloudFormationConfig;
+import io.floci.testcontainers.config.CloudWatchLogsConfig;
+import io.floci.testcontainers.config.CloudWatchMetricsConfig;
+import io.floci.testcontainers.config.CognitoConfig;
+import io.floci.testcontainers.config.DynamoDbConfig;
+import io.floci.testcontainers.config.Ec2Config;
+import io.floci.testcontainers.config.EventBridgeConfig;
+import io.floci.testcontainers.config.IamConfig;
+import io.floci.testcontainers.config.KinesisConfig;
+import io.floci.testcontainers.config.KmsConfig;
 import io.floci.testcontainers.config.LambdaConfig;
 import io.floci.testcontainers.config.RdsConfig;
+import io.floci.testcontainers.config.S3Config;
+import io.floci.testcontainers.config.SchedulerConfig;
+import io.floci.testcontainers.config.SecretsManagerConfig;
+import io.floci.testcontainers.config.SesConfig;
+import io.floci.testcontainers.config.SnsConfig;
+import io.floci.testcontainers.config.SqsConfig;
+import io.floci.testcontainers.config.SsmConfig;
+import io.floci.testcontainers.config.StepFunctionsConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -56,8 +79,31 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private static final String DEFAULT_ACCESS_KEY = "test";
     private static final String DEFAULT_SECRET_KEY = "test";
 
+    private AcmConfig acmConfig = AcmConfig.builder().build();
+    private ApiGatewayConfig apiGatewayConfig = ApiGatewayConfig.builder().build();
+    private ApiGatewayV2Config apiGatewayV2Config = ApiGatewayV2Config.builder().build();
+    private AppConfigConfig appConfigConfig = AppConfigConfig.builder().build();
+    private AppConfigDataConfig appConfigDataConfig = AppConfigDataConfig.builder().build();
+    private CloudFormationConfig cloudFormationConfig = CloudFormationConfig.builder().build();
+    private CloudWatchLogsConfig cloudWatchLogsConfig = CloudWatchLogsConfig.builder().build();
+    private CloudWatchMetricsConfig cloudWatchMetricsConfig = CloudWatchMetricsConfig.builder().build();
+    private CognitoConfig cognitoConfig = CognitoConfig.builder().build();
+    private DynamoDbConfig dynamoDbConfig = DynamoDbConfig.builder().build();
+    private Ec2Config ec2Config = Ec2Config.builder().build();
+    private EventBridgeConfig eventBridgeConfig = EventBridgeConfig.builder().build();
+    private IamConfig iamConfig = IamConfig.builder().build();
+    private KinesisConfig kinesisConfig = KinesisConfig.builder().build();
+    private KmsConfig kmsConfig = KmsConfig.builder().build();
     private LambdaConfig lambdaConfig = LambdaConfig.builder().build();
     private RdsConfig rdsConfig = RdsConfig.builder().build();
+    private S3Config s3Config = S3Config.builder().build();
+    private SchedulerConfig schedulerConfig = SchedulerConfig.builder().build();
+    private SecretsManagerConfig secretsManagerConfig = SecretsManagerConfig.builder().build();
+    private SesConfig sesConfig = SesConfig.builder().build();
+    private SnsConfig snsConfig = SnsConfig.builder().build();
+    private SqsConfig sqsConfig = SqsConfig.builder().build();
+    private SsmConfig ssmConfig = SsmConfig.builder().build();
+    private StepFunctionsConfig stepFunctionsConfig = StepFunctionsConfig.builder().build();
 
     /**
      * Creates a new Floci container with the default image ({@code hectorvent/floci:latest}).
@@ -93,8 +139,32 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
                 .withStartupTimeout(Duration.ofSeconds(30)));
 
         configureExposedPorts();
-        configureLambda();
-        configureRds();
+
+        acmConfig.applyToContainer(this);
+        apiGatewayConfig.applyToContainer(this);
+        apiGatewayV2Config.applyToContainer(this);
+        appConfigConfig.applyToContainer(this);
+        appConfigDataConfig.applyToContainer(this);
+        cloudFormationConfig.applyToContainer(this);
+        cloudWatchLogsConfig.applyToContainer(this);
+        cloudWatchMetricsConfig.applyToContainer(this);
+        cognitoConfig.applyToContainer(this);
+        dynamoDbConfig.applyToContainer(this);
+        ec2Config.applyToContainer(this);
+        eventBridgeConfig.applyToContainer(this);
+        iamConfig.applyToContainer(this);
+        kinesisConfig.applyToContainer(this);
+        kmsConfig.applyToContainer(this);
+        lambdaConfig.applyToContainer(this);
+        rdsConfig.applyToContainer(this);
+        s3Config.applyToContainer(this);
+        schedulerConfig.applyToContainer(this);
+        secretsManagerConfig.applyToContainer(this);
+        sesConfig.applyToContainer(this);
+        snsConfig.applyToContainer(this);
+        sqsConfig.applyToContainer(this);
+        ssmConfig.applyToContainer(this);
+        stepFunctionsConfig.applyToContainer(this);
 
         // Bugfix to make it work on podman - fixed by PR https://github.com/floci-io/floci/pull/343
         withCopyToContainer(Transferable.of(""), "/.dockerenv");
@@ -194,6 +264,426 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
+     * ACM-specific settings such as certificate validation timing
+     *
+     * @return the ACM configuration
+     */
+    public AcmConfig getAcmConfig() {
+        return acmConfig;
+    }
+
+    /**
+     * Configures acm-specific settings such as certificate validation timing.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withAcmConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link AcmConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withAcmConfig(Consumer<AcmConfig.Builder> configurer) {
+        AcmConfig.Builder builder = AcmConfig.builder();
+        configurer.accept(builder);
+        this.acmConfig = builder.build();
+        acmConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * API Gateway-specific settings
+     *
+     * @return the API Gateway configuration
+     */
+    public ApiGatewayConfig getApiGatewayConfig() {
+        return apiGatewayConfig;
+    }
+
+    /**
+     * Configures api gateway-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withApiGatewayConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link ApiGatewayConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withApiGatewayConfig(Consumer<ApiGatewayConfig.Builder> configurer) {
+        ApiGatewayConfig.Builder builder = ApiGatewayConfig.builder();
+        configurer.accept(builder);
+        this.apiGatewayConfig = builder.build();
+        apiGatewayConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * API Gateway V2-specific settings
+     *
+     * @return the API Gateway V2 configuration
+     */
+    public ApiGatewayV2Config getApiGatewayV2Config() {
+        return apiGatewayV2Config;
+    }
+
+    /**
+     * Configures api gateway v2-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withApiGatewayV2Config(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link ApiGatewayV2Config.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withApiGatewayV2Config(Consumer<ApiGatewayV2Config.Builder> configurer) {
+        ApiGatewayV2Config.Builder builder = ApiGatewayV2Config.builder();
+        configurer.accept(builder);
+        this.apiGatewayV2Config = builder.build();
+        apiGatewayV2Config.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * AppConfig-specific settings
+     *
+     * @return the AppConfig configuration
+     */
+    public AppConfigConfig getAppConfigConfig() {
+        return appConfigConfig;
+    }
+
+    /**
+     * Configures appconfig-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withAppConfigConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link AppConfigConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withAppConfigConfig(Consumer<AppConfigConfig.Builder> configurer) {
+        AppConfigConfig.Builder builder = AppConfigConfig.builder();
+        configurer.accept(builder);
+        this.appConfigConfig = builder.build();
+        appConfigConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * AppConfig Data-specific settings
+     *
+     * @return the AppConfig Data configuration
+     */
+    public AppConfigDataConfig getAppConfigDataConfig() {
+        return appConfigDataConfig;
+    }
+
+    /**
+     * Configures appconfig data-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withAppConfigDataConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link AppConfigDataConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withAppConfigDataConfig(Consumer<AppConfigDataConfig.Builder> configurer) {
+        AppConfigDataConfig.Builder builder = AppConfigDataConfig.builder();
+        configurer.accept(builder);
+        this.appConfigDataConfig = builder.build();
+        appConfigDataConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * CloudFormation-specific settings
+     *
+     * @return the CloudFormation configuration
+     */
+    public CloudFormationConfig getCloudFormationConfig() {
+        return cloudFormationConfig;
+    }
+
+    /**
+     * Configures cloudformation-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withCloudFormationConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link CloudFormationConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withCloudFormationConfig(Consumer<CloudFormationConfig.Builder> configurer) {
+        CloudFormationConfig.Builder builder = CloudFormationConfig.builder();
+        configurer.accept(builder);
+        this.cloudFormationConfig = builder.build();
+        cloudFormationConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * CloudWatch Logs-specific settings such as query event limits
+     *
+     * @return the CloudWatch Logs configuration
+     */
+    public CloudWatchLogsConfig getCloudWatchLogsConfig() {
+        return cloudWatchLogsConfig;
+    }
+
+    /**
+     * Configures cloudwatch logs-specific settings such as query event limits.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withCloudWatchLogsConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link CloudWatchLogsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withCloudWatchLogsConfig(Consumer<CloudWatchLogsConfig.Builder> configurer) {
+        CloudWatchLogsConfig.Builder builder = CloudWatchLogsConfig.builder();
+        configurer.accept(builder);
+        this.cloudWatchLogsConfig = builder.build();
+        cloudWatchLogsConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * CloudWatch Metrics-specific settings
+     *
+     * @return the CloudWatch Metrics configuration
+     */
+    public CloudWatchMetricsConfig getCloudWatchMetricsConfig() {
+        return cloudWatchMetricsConfig;
+    }
+
+    /**
+     * Configures cloudwatch metrics-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withCloudWatchMetricsConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link CloudWatchMetricsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withCloudWatchMetricsConfig(Consumer<CloudWatchMetricsConfig.Builder> configurer) {
+        CloudWatchMetricsConfig.Builder builder = CloudWatchMetricsConfig.builder();
+        configurer.accept(builder);
+        this.cloudWatchMetricsConfig = builder.build();
+        cloudWatchMetricsConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * Cognito-specific settings
+     *
+     * @return the Cognito configuration
+     */
+    public CognitoConfig getCognitoConfig() {
+        return cognitoConfig;
+    }
+
+    /**
+     * Configures cognito-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withCognitoConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link CognitoConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withCognitoConfig(Consumer<CognitoConfig.Builder> configurer) {
+        CognitoConfig.Builder builder = CognitoConfig.builder();
+        configurer.accept(builder);
+        this.cognitoConfig = builder.build();
+        cognitoConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * DynamoDB-specific settings
+     *
+     * @return the DynamoDB configuration
+     */
+    public DynamoDbConfig getDynamoDbConfig() {
+        return dynamoDbConfig;
+    }
+
+    /**
+     * Configures dynamodb-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withDynamoDbConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link DynamoDbConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withDynamoDbConfig(Consumer<DynamoDbConfig.Builder> configurer) {
+        DynamoDbConfig.Builder builder = DynamoDbConfig.builder();
+        configurer.accept(builder);
+        this.dynamoDbConfig = builder.build();
+        dynamoDbConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * EC2-specific settings
+     *
+     * @return the EC2 configuration
+     */
+    public Ec2Config getEc2Config() {
+        return ec2Config;
+    }
+
+    /**
+     * Configures ec2-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withEc2Config(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link Ec2Config.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withEc2Config(Consumer<Ec2Config.Builder> configurer) {
+        Ec2Config.Builder builder = Ec2Config.builder();
+        configurer.accept(builder);
+        this.ec2Config = builder.build();
+        ec2Config.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * EventBridge-specific settings
+     *
+     * @return the EventBridge configuration
+     */
+    public EventBridgeConfig getEventBridgeConfig() {
+        return eventBridgeConfig;
+    }
+
+    /**
+     * Configures eventbridge-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withEventBridgeConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link EventBridgeConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withEventBridgeConfig(Consumer<EventBridgeConfig.Builder> configurer) {
+        EventBridgeConfig.Builder builder = EventBridgeConfig.builder();
+        configurer.accept(builder);
+        this.eventBridgeConfig = builder.build();
+        eventBridgeConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * IAM-specific settings
+     *
+     * @return the IAM configuration
+     */
+    public IamConfig getIamConfig() {
+        return iamConfig;
+    }
+
+    /**
+     * Configures iam-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withIamConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link IamConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withIamConfig(Consumer<IamConfig.Builder> configurer) {
+        IamConfig.Builder builder = IamConfig.builder();
+        configurer.accept(builder);
+        this.iamConfig = builder.build();
+        iamConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * Kinesis-specific settings
+     *
+     * @return the Kinesis configuration
+     */
+    public KinesisConfig getKinesisConfig() {
+        return kinesisConfig;
+    }
+
+    /**
+     * Configures kinesis-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withKinesisConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link KinesisConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withKinesisConfig(Consumer<KinesisConfig.Builder> configurer) {
+        KinesisConfig.Builder builder = KinesisConfig.builder();
+        configurer.accept(builder);
+        this.kinesisConfig = builder.build();
+        kinesisConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * KMS-specific settings
+     *
+     * @return the KMS configuration
+     */
+    public KmsConfig getKmsConfig() {
+        return kmsConfig;
+    }
+
+    /**
+     * Configures kms-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withKmsConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link KmsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withKmsConfig(Consumer<KmsConfig.Builder> configurer) {
+        KmsConfig.Builder builder = KmsConfig.builder();
+        configurer.accept(builder);
+        this.kmsConfig = builder.build();
+        kmsConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
      * Lambda-specific settings such as the Runtime API port range
      *
      * @return the Lambda configuration
@@ -218,7 +708,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         configurer.accept(builder);
         this.lambdaConfig = builder.build();
         configureExposedPorts();
-        configureLambda();
+        lambdaConfig.applyToContainer(this);
         return this;
     }
 
@@ -249,10 +739,233 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         configurer.accept(builder);
         this.rdsConfig = builder.build();
         configureExposedPorts();
-        configureRds();
+        rdsConfig.applyToContainer(this);
         return this;
     }
 
+    /**
+     * S3-specific settings such as presigned URL expiry
+     *
+     * @return the S3 configuration
+     */
+    public S3Config getS3Config() {
+        return s3Config;
+    }
+
+    /**
+     * Configures s3-specific settings such as presigned url expiry.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withS3Config(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link S3Config.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withS3Config(Consumer<S3Config.Builder> configurer) {
+        S3Config.Builder builder = S3Config.builder();
+        configurer.accept(builder);
+        this.s3Config = builder.build();
+        s3Config.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * Scheduler-specific settings
+     *
+     * @return the Scheduler configuration
+     */
+    public SchedulerConfig getSchedulerConfig() {
+        return schedulerConfig;
+    }
+
+    /**
+     * Configures scheduler-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withSchedulerConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link SchedulerConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withSchedulerConfig(Consumer<SchedulerConfig.Builder> configurer) {
+        SchedulerConfig.Builder builder = SchedulerConfig.builder();
+        configurer.accept(builder);
+        this.schedulerConfig = builder.build();
+        schedulerConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * Secrets Manager-specific settings such as recovery window
+     *
+     * @return the Secrets Manager configuration
+     */
+    public SecretsManagerConfig getSecretsManagerConfig() {
+        return secretsManagerConfig;
+    }
+
+    /**
+     * Configures secrets manager-specific settings such as recovery window.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withSecretsManagerConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link SecretsManagerConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withSecretsManagerConfig(Consumer<SecretsManagerConfig.Builder> configurer) {
+        SecretsManagerConfig.Builder builder = SecretsManagerConfig.builder();
+        configurer.accept(builder);
+        this.secretsManagerConfig = builder.build();
+        secretsManagerConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * SES-specific settings
+     *
+     * @return the SES configuration
+     */
+    public SesConfig getSesConfig() {
+        return sesConfig;
+    }
+
+    /**
+     * Configures ses-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withSesConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link SesConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withSesConfig(Consumer<SesConfig.Builder> configurer) {
+        SesConfig.Builder builder = SesConfig.builder();
+        configurer.accept(builder);
+        this.sesConfig = builder.build();
+        sesConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * SNS-specific settings
+     *
+     * @return the SNS configuration
+     */
+    public SnsConfig getSnsConfig() {
+        return snsConfig;
+    }
+
+    /**
+     * Configures sns-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withSnsConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link SnsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withSnsConfig(Consumer<SnsConfig.Builder> configurer) {
+        SnsConfig.Builder builder = SnsConfig.builder();
+        configurer.accept(builder);
+        this.snsConfig = builder.build();
+        snsConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * SQS-specific settings such as visibility timeout and message size limits
+     *
+     * @return the SQS configuration
+     */
+    public SqsConfig getSqsConfig() {
+        return sqsConfig;
+    }
+
+    /**
+     * Configures sqs-specific settings such as visibility timeout and message size limits.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withSqsConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link SqsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withSqsConfig(Consumer<SqsConfig.Builder> configurer) {
+        SqsConfig.Builder builder = SqsConfig.builder();
+        configurer.accept(builder);
+        this.sqsConfig = builder.build();
+        sqsConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * SSM-specific settings such as parameter history limits
+     *
+     * @return the SSM configuration
+     */
+    public SsmConfig getSsmConfig() {
+        return ssmConfig;
+    }
+
+    /**
+     * Configures ssm-specific settings such as parameter history limits.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withSsmConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link SsmConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withSsmConfig(Consumer<SsmConfig.Builder> configurer) {
+        SsmConfig.Builder builder = SsmConfig.builder();
+        configurer.accept(builder);
+        this.ssmConfig = builder.build();
+        ssmConfig.applyToContainer(this);
+        return this;
+    }
+
+    /**
+     * Step Functions-specific settings
+     *
+     * @return the Step Functions configuration
+     */
+    public StepFunctionsConfig getStepFunctionsConfig() {
+        return stepFunctionsConfig;
+    }
+
+    /**
+     * Configures step functions-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withStepFunctionsConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link StepFunctionsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withStepFunctionsConfig(Consumer<StepFunctionsConfig.Builder> configurer) {
+        StepFunctionsConfig.Builder builder = StepFunctionsConfig.builder();
+        configurer.accept(builder);
+        this.stepFunctionsConfig = builder.build();
+        stepFunctionsConfig.applyToContainer(this);
+        return this;
+    }
     /**
      * Configures all exposed ports of the Floci container
      */
@@ -270,46 +983,6 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
             // Expose ports of RDS to make them accessible by the user
             for (int port = rdsConfig.getProxyBasePort(); port <= rdsConfig.getProxyMaxPort(); port++) {
                 addExposedPorts(port);
-            }
-        }
-    }
-
-    /**
-     * Applies Lambda Runtime API configuration
-     */
-    private void configureLambda() {
-        withEnv("FLOCI_SERVICES_LAMBDA_ENABLED", String.valueOf(lambdaConfig.isEnabled()));
-
-        if (lambdaConfig.isEnabled()) {
-            withEnv("FLOCI_SERVICES_LAMBDA_EPHEMERAL", String.valueOf(lambdaConfig.isEphemeral()));
-            withEnv("FLOCI_SERVICES_LAMBDA_DEFAULT_MEMORY_MB", String.valueOf(lambdaConfig.getDefaultMemoryMb()));
-            withEnv("FLOCI_SERVICES_LAMBDA_DEFAULT_TIMEOUT_SECONDS", String.valueOf(lambdaConfig.getDefaultTimeoutSeconds()));
-            withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_BASE_PORT", String.valueOf(lambdaConfig.getRuntimeApiBasePort()));
-            withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", String.valueOf(lambdaConfig.getRuntimeApiMaxPort()));
-            withEnv("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", String.valueOf(lambdaConfig.getPollIntervalMs()));
-            withEnv("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", String.valueOf(lambdaConfig.getContainerIdleTimeoutSeconds()));
-
-            if (lambdaConfig.getDockerNetwork() != null) {
-                withEnv("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", lambdaConfig.getDockerNetwork());
-            }
-        }
-    }
-
-    /**
-     * Applies RDS configuration
-     */
-    private void configureRds() {
-        withEnv("FLOCI_SERVICES_RDS_ENABLED", String.valueOf(rdsConfig.isEnabled()));
-
-        if (rdsConfig.isEnabled()) {
-            withEnv("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", String.valueOf(rdsConfig.getProxyBasePort()));
-            withEnv("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", String.valueOf(rdsConfig.getProxyMaxPort()));
-            withEnv("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", rdsConfig.getDefaultPostgresImage());
-            withEnv("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", rdsConfig.getDefaultMysqlImage());
-            withEnv("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", rdsConfig.getDefaultMariadbImage());
-
-            if (rdsConfig.getDockerNetwork() != null) {
-                withEnv("FLOCI_SERVICES_RDS_DOCKER_NETWORK", rdsConfig.getDockerNetwork());
             }
         }
     }

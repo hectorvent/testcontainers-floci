@@ -1,6 +1,5 @@
 package io.floci.testcontainers;
 
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.slf4j.event.Level;
 import org.testcontainers.utility.DockerImageName;
@@ -10,257 +9,329 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FlociContainerTest {
 
-    @Nested
-    class ServiceIndependent {
-        @Test
-        void shouldCreateContainerWithDefaultImage() {
-            try (FlociContainer container = new FlociContainer()) {
-                assertThat(container.getDockerImageName()).isEqualTo("hectorvent/floci:latest");
-            }
-        }
-
-        @Test
-        void shouldRejectIncompatibleImage() {
-            assertThatThrownBy(() -> new FlociContainer(DockerImageName.parse("other/image:latest")))
-                    .isInstanceOf(IllegalStateException.class);
-        }
-
-        @Test
-        void shouldReturnDefaultRegion() {
-            try (FlociContainer container = new FlociContainer()) {
-                assertThat(container.getRegion()).isEqualTo("us-east-1");
-            }
-        }
-
-        @Test
-        void shouldReturnCustomRegion() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withRegion("eu-west-1");
-                assertThat(container.getRegion()).isEqualTo("eu-west-1");
-            }
-        }
-
-        @Test
-        void shouldReturnDefaultCredentials() {
-            try (FlociContainer container = new FlociContainer()) {
-                assertThat(container.getAccessKey()).isEqualTo("test");
-                assertThat(container.getSecretKey()).isEqualTo("test");
-            }
-        }
-
-        @Test
-        void shouldExposeFlociPort() {
-            try (FlociContainer container = new FlociContainer()) {
-                assertThat(container.getExposedPorts()).contains(FlociContainer.PORT);
-            }
-        }
-
-        @Test
-        void shouldReturnDefaultLogLevel() {
-            try (FlociContainer container = new FlociContainer()) {
-                assertThat(container.getLogLevel()).isEqualTo(Level.WARN);
-            }
-        }
-
-        @Test
-        void shouldReturnCustomLogLevel() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withLogLevel(Level.DEBUG);
-                assertThat(container.getLogLevel()).isEqualTo(Level.DEBUG);
-            }
-        }
-
-        @Test
-        void shouldFallbackToWarnForInvalidLogLevel() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withEnv("QUARKUS_LOG_CATEGORY__IO_GITHUB_HECTORVENT__LEVEL", "INVALID");
-                assertThat(container.getLogLevel()).isEqualTo(Level.WARN);
-            }
-        }
-
-        @Test
-        void shouldConfigureDedicatedNetwork() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withDedicatedNetwork();
-
-                String networkName = container.getDedicatedNetworkName();
-                assertThat(networkName).startsWith("floci-network-");
-                assertThat(networkName).hasSize("floci-network-".length() + 8);
-                assertThat(container.getNetwork()).isNotNull();
-            }
-        }
-
-        @Test
-        void shouldCreateUniqueNetworkPerCall() {
-            try (FlociContainer container1 = new FlociContainer();
-                 FlociContainer container2 = new FlociContainer()) {
-                container1.withDedicatedNetwork();
-                container2.withDedicatedNetwork();
-
-                String network1 = container1.getDedicatedNetworkName();
-                String network2 = container2.getDedicatedNetworkName();
-                assertThat(network1).isNotEqualTo(network2);
-            }
+    @Test
+    void shouldCreateContainerWithDefaultImage() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getDockerImageName()).isEqualTo("hectorvent/floci:latest");
         }
     }
 
-    @Nested
-    class LambdaService {
-        @Test
-        void shouldConfigureLambdaWithDefaultValues() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withLambdaConfig(c -> {
-                });
+    @Test
+    void shouldRejectIncompatibleImage() {
+        assertThatThrownBy(() -> new FlociContainer(DockerImageName.parse("other/image:latest")))
+                .isInstanceOf(IllegalStateException.class);
+    }
 
-                var env = container.getEnvMap();
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "true");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_EPHEMERAL", "false");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DEFAULT_MEMORY_MB", "128");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DEFAULT_TIMEOUT_SECONDS", "3");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_BASE_PORT", "9200");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", "9209");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", "1000");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", "300");
-                assertThat(env).doesNotContainKey("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK");
-            }
-        }
-
-        @Test
-        void shouldConfigureLambdaWithCustomValues() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withLambdaConfig(c -> c
-                        .enabled(true)
-                        .ephemeral(true)
-                        .defaultMemoryMb(256)
-                        .defaultTimeoutSeconds(30)
-                        .runtimeApiPortRange(9500, 50)
-                        .pollIntervalMs(500)
-                        .containerIdleTimeoutSeconds(600)
-                        .dockerNetwork("my-network"));
-
-                var env = container.getEnvMap();
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "true");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_EPHEMERAL", "true");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DEFAULT_MEMORY_MB", "256");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DEFAULT_TIMEOUT_SECONDS", "30");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_BASE_PORT", "9500");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", "9549");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", "500");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", "600");
-                assertThat(env).containsEntry("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", "my-network");
-            }
-        }
-
-        @Test
-        void shouldExposeLambdaRuntimeApiPortsWhenEnabled() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withLambdaConfig(c -> c
-                        .exposeRuntimePorts(true)
-                        .runtimeApiPortRange(9300, 10));
-
-                var ports = container.getExposedPorts();
-                for (int port = 9300; port < 9310; port++) {
-                    assertThat(ports).contains(port);
-                }
-            }
-        }
-
-        @Test
-        void shouldNotExposeLambdaRuntimeApiPortsWhenDisabled() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withLambdaConfig(c -> c
-                        .enabled(false)
-                        .runtimeApiPortRange(9300, 10));
-
-                assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "false");
-                assertThat(container.getExposedPorts()).doesNotContain(9300);
-            }
-        }
-
-        @Test
-        void shouldStoreLambdaConfigOnContainer() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withLambdaConfig(c -> c
-                        .defaultMemoryMb(512)
-                        .ephemeral(true));
-
-                assertThat(container.getLambdaConfig().getDefaultMemoryMb()).isEqualTo(512);
-                assertThat(container.getLambdaConfig().isEphemeral()).isTrue();
-            }
+    @Test
+    void shouldReturnDefaultRegion() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getRegion()).isEqualTo("us-east-1");
         }
     }
 
-    @Nested
-    class RdsService {
-        @Test
-        void shouldConfigureRdsWithDefaultValues() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withRdsConfig(c -> {});
-
-                var env = container.getEnvMap();
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", "7000");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", "7009");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", "postgres:16-alpine");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", "mysql:8.0");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", "mariadb:11");
-                assertThat(env).doesNotContainKey("FLOCI_SERVICES_RDS_DOCKER_NETWORK");
-            }
+    @Test
+    void shouldReturnCustomRegion() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withRegion("eu-west-1");
+            assertThat(container.getRegion()).isEqualTo("eu-west-1");
         }
+    }
 
-        @Test
-        void shouldConfigureRdsWithCustomValues() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withRdsConfig(c -> c
-                        .enabled(true)
-                        .proxyPortRange(8000, 100)
-                        .defaultPostgresImage("postgres:15")
-                        .defaultMysqlImage("mysql:9.0")
-                        .defaultMariadbImage("mariadb:10")
-                        .dockerNetwork("my-rds-network"));
-
-                var env = container.getEnvMap();
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", "8000");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", "8099");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", "postgres:15");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", "mysql:9.0");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", "mariadb:10");
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_DOCKER_NETWORK", "my-rds-network");
-            }
+    @Test
+    void shouldReturnDefaultCredentials() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getAccessKey()).isEqualTo("test");
+            assertThat(container.getSecretKey()).isEqualTo("test");
         }
+    }
 
-        @Test
-        void shouldNotSetRdsEnvVarsWhenDisabled() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withRdsConfig(c -> c.enabled(false).proxyPortRange(8000, 100));
-
-                var env = container.getEnvMap();
-                assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "false");
-                assertThat(container.getExposedPorts()).doesNotContain(8000);
-            }
+    @Test
+    void shouldExposeFlociPort() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getExposedPorts()).contains(FlociContainer.PORT);
         }
+    }
 
-        @Test
-        void shouldStoreRdsConfigOnContainer() {
-            try (FlociContainer container = new FlociContainer()) {
-                container.withRdsConfig(c -> c
-                        .defaultPostgresImage("postgres:15")
-                        .proxyPortRange(8000, 100));
-
-                assertThat(container.getRdsConfig().getDefaultPostgresImage()).isEqualTo("postgres:15");
-                assertThat(container.getRdsConfig().getProxyBasePort()).isEqualTo(8000);
-                assertThat(container.getRdsConfig().getProxyPortsCount()).isEqualTo(100);
-            }
+    @Test
+    void shouldReturnDefaultLogLevel() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getLogLevel()).isEqualTo(Level.WARN);
         }
+    }
 
-        @Test
-        void shouldReturnContainerFromWithRdsConfig() {
-            try (FlociContainer container = new FlociContainer()) {
-                FlociContainer result = container.withRdsConfig(c -> c
-                        .proxyPortRange(8000, 100));
-                assertThat(result).isSameAs(container);
-            }
+    @Test
+    void shouldReturnCustomLogLevel() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withLogLevel(Level.DEBUG);
+            assertThat(container.getLogLevel()).isEqualTo(Level.DEBUG);
+        }
+    }
+
+    @Test
+    void shouldFallbackToWarnForInvalidLogLevel() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withEnv("QUARKUS_LOG_CATEGORY__IO_GITHUB_HECTORVENT__LEVEL", "INVALID");
+            assertThat(container.getLogLevel()).isEqualTo(Level.WARN);
+        }
+    }
+
+    @Test
+    void shouldConfigureDedicatedNetwork() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withDedicatedNetwork();
+
+            String networkName = container.getDedicatedNetworkName();
+            assertThat(networkName).startsWith("floci-network-");
+            assertThat(networkName).hasSize("floci-network-".length() + 8);
+            assertThat(container.getNetwork()).isNotNull();
+        }
+    }
+
+    @Test
+    void shouldCreateUniqueNetworkPerCall() {
+        try (FlociContainer container1 = new FlociContainer();
+             FlociContainer container2 = new FlociContainer()) {
+            container1.withDedicatedNetwork();
+            container2.withDedicatedNetwork();
+
+            String network1 = container1.getDedicatedNetworkName();
+            String network2 = container2.getDedicatedNetworkName();
+            assertThat(network1).isNotEqualTo(network2);
+        }
+    }
+
+    @Test
+    void shouldStoreAcmConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withAcmConfig(c -> c.validationWaitSeconds(5));
+
+            assertThat(container.getAcmConfig().getValidationWaitSeconds()).isEqualTo(5);
+        }
+    }
+
+    @Test
+    void shouldStoreApiGatewayConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withApiGatewayConfig(c -> c.enabled(false));
+
+            assertThat(container.getApiGatewayConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreApiGatewayV2ConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withApiGatewayV2Config(c -> c.enabled(false));
+
+            assertThat(container.getApiGatewayV2Config().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreAppConfigConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withAppConfigConfig(c -> c.enabled(false));
+
+            assertThat(container.getAppConfigConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreAppConfigDataConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withAppConfigDataConfig(c -> c.enabled(false));
+
+            assertThat(container.getAppConfigDataConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreCloudFormationConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withCloudFormationConfig(c -> c.enabled(false));
+
+            assertThat(container.getCloudFormationConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreCloudWatchLogsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withCloudWatchLogsConfig(c -> c.maxEventsPerQuery(5000));
+
+            assertThat(container.getCloudWatchLogsConfig().getMaxEventsPerQuery()).isEqualTo(5000);
+        }
+    }
+
+    @Test
+    void shouldStoreCloudWatchMetricsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withCloudWatchMetricsConfig(c -> c.enabled(false));
+
+            assertThat(container.getCloudWatchMetricsConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreCognitoConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withCognitoConfig(c -> c.enabled(false));
+
+            assertThat(container.getCognitoConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreDynamoDbConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withDynamoDbConfig(c -> c.enabled(false));
+
+            assertThat(container.getDynamoDbConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreEc2ConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withEc2Config(c -> c.enabled(false));
+
+            assertThat(container.getEc2Config().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreEventBridgeConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withEventBridgeConfig(c -> c.enabled(false));
+
+            assertThat(container.getEventBridgeConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreIamConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withIamConfig(c -> c.enabled(false));
+
+            assertThat(container.getIamConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreKinesisConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withKinesisConfig(c -> c.enabled(false));
+
+            assertThat(container.getKinesisConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreKmsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withKmsConfig(c -> c.enabled(false));
+
+            assertThat(container.getKmsConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreLambdaConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withLambdaConfig(c -> c
+                    .defaultMemoryMb(512)
+                    .ephemeral(true));
+
+            assertThat(container.getLambdaConfig().getDefaultMemoryMb()).isEqualTo(512);
+            assertThat(container.getLambdaConfig().isEphemeral()).isTrue();
+        }
+    }
+
+    @Test
+    void shouldStoreRdsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withRdsConfig(c -> c
+                    .defaultPostgresImage("postgres:15")
+                    .proxyPortRange(8000, 100));
+
+            assertThat(container.getRdsConfig().getDefaultPostgresImage()).isEqualTo("postgres:15");
+            assertThat(container.getRdsConfig().getProxyBasePort()).isEqualTo(8000);
+            assertThat(container.getRdsConfig().getProxyPortsCount()).isEqualTo(100);
+        }
+    }
+
+    @Test
+    void shouldStoreS3ConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withS3Config(c -> c.defaultPresignExpirySeconds(7200));
+
+            assertThat(container.getS3Config().getDefaultPresignExpirySeconds()).isEqualTo(7200);
+        }
+    }
+
+    @Test
+    void shouldStoreSchedulerConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withSchedulerConfig(c -> c.enabled(false));
+
+            assertThat(container.getSchedulerConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreSecretsManagerConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withSecretsManagerConfig(c -> c.defaultRecoveryWindowDays(7));
+
+            assertThat(container.getSecretsManagerConfig().getDefaultRecoveryWindowDays()).isEqualTo(7);
+        }
+    }
+
+    @Test
+    void shouldStoreSesConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withSesConfig(c -> c.enabled(false));
+
+            assertThat(container.getSesConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreSnsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withSnsConfig(c -> c.enabled(false));
+
+            assertThat(container.getSnsConfig().isEnabled()).isFalse();
+        }
+    }
+
+    @Test
+    void shouldStoreSqsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withSqsConfig(c -> c
+                    .defaultVisibilityTimeout(60)
+                    .maxMessageSize(131072));
+
+            assertThat(container.getSqsConfig().getDefaultVisibilityTimeout()).isEqualTo(60);
+            assertThat(container.getSqsConfig().getMaxMessageSize()).isEqualTo(131072);
+        }
+    }
+
+    @Test
+    void shouldStoreSsmConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withSsmConfig(c -> c.maxParameterHistory(10));
+
+            assertThat(container.getSsmConfig().getMaxParameterHistory()).isEqualTo(10);
+        }
+    }
+
+    @Test
+    void shouldStoreStepFunctionsConfigOnContainer() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withStepFunctionsConfig(c -> c.enabled(false));
+
+            assertThat(container.getStepFunctionsConfig().isEnabled()).isFalse();
         }
     }
 }
