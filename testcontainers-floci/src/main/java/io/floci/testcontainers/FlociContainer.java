@@ -4,11 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Testcontainers module for <a href="https://github.com/floci-io/floci">Floci</a> — a
@@ -142,5 +144,31 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
             logger.warn("Invalid log level '{}' in environment variable, defaulting to WARN", logLevelStr);
             return Level.WARN;
         }
+    }
+
+    /**
+     * Configures a dedicated Docker network for this container that will be used by Floci itself and by all
+     * services, that spin up additional containers like RDS, Lambda or ElasticCache.
+     */
+    public FlociContainer withDedicatedNetwork() {
+        String networkName = "floci-network-" + uniqueShortId();
+        Network network = Network.builder()
+                .createNetworkCmdModifier(cmd -> cmd.withName(networkName))
+                .build();
+        withNetwork(network);
+        return withEnv("FLOCI_SERVICES_DOCKER_NETWORK", networkName);
+    }
+
+    /**
+     * Returns the name of the dedicated Docker network configured for this container, or {@code null} if no dedicated network is configured.
+     *
+     * @return the name of the dedicated Docker network, or {@code null} if not configured
+     */
+    public String getDedicatedNetworkName() {
+        return getEnvMap().get("FLOCI_SERVICES_DOCKER_NETWORK");
+    }
+
+    private static String uniqueShortId() {
+        return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
     }
 }
