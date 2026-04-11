@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -32,7 +31,7 @@ class SqsConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        SqsConfig.builder().build().applyToContainer(container);
+        SqsConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_SQS_ENABLED", "true")
@@ -47,7 +46,7 @@ class SqsConfigTest {
                 .defaultVisibilityTimeout(60)
                 .maxMessageSize(131072)
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_SQS_DEFAULT_VISIBILITY_TIMEOUT", "60")
@@ -57,7 +56,7 @@ class SqsConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        SqsConfig.builder().enabled(false).build().applyToContainer(container);
+        SqsConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_SQS_ENABLED", "false");
     }

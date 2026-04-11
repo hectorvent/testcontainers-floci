@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -29,7 +28,7 @@ class CloudWatchLogsConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        CloudWatchLogsConfig.builder().build().applyToContainer(container);
+        CloudWatchLogsConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_CLOUDWATCHLOGS_ENABLED", "true")
@@ -42,7 +41,7 @@ class CloudWatchLogsConfigTest {
         CloudWatchLogsConfig.builder()
                 .maxEventsPerQuery(5000)
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_CLOUDWATCHLOGS_MAX_EVENTS_PER_QUERY", "5000");
     }
@@ -50,7 +49,7 @@ class CloudWatchLogsConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        CloudWatchLogsConfig.builder().enabled(false).build().applyToContainer(container);
+        CloudWatchLogsConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_CLOUDWATCHLOGS_ENABLED", "false");
     }

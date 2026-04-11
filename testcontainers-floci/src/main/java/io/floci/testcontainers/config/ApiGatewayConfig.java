@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for API Gateway-specific container settings.
@@ -14,7 +14,6 @@ import org.testcontainers.containers.GenericContainer;
 public class ApiGatewayConfig extends AbstractServiceConfig {
 
 
-
     private ApiGatewayConfig(Builder builder) {
         super(builder.enabled);
     }
@@ -25,7 +24,7 @@ public class ApiGatewayConfig extends AbstractServiceConfig {
 
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_APIGATEWAY_ENABLED", String.valueOf(isEnabled()));
     }
 

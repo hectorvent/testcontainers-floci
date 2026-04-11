@@ -45,7 +45,7 @@ class RdsConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        RdsConfig.builder().build().applyToContainer(container);
+        RdsConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true")
@@ -68,7 +68,7 @@ class RdsConfigTest {
                 .defaultMariadbImage("mariadb:10")
                 .dockerNetwork("my-rds-network")
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true")

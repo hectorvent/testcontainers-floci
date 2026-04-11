@@ -54,7 +54,7 @@ class LambdaConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        LambdaConfig.builder().build().applyToContainer(container);
+        LambdaConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "true")
@@ -81,7 +81,7 @@ class LambdaConfigTest {
                 .containerIdleTimeoutSeconds(600)
                 .dockerNetwork("my-network")
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "true")
@@ -98,7 +98,7 @@ class LambdaConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        LambdaConfig.builder().enabled(false).build().applyToContainer(container);
+        LambdaConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_LAMBDA_ENABLED", "false");
     }

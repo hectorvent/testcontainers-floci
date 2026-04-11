@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for ACM-specific container settings.
@@ -38,7 +38,7 @@ public class AcmConfig extends AbstractServiceConfig {
     }
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_ACM_ENABLED", String.valueOf(isEnabled()));
 
         if (isEnabled()) {

@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -26,7 +25,7 @@ class AppConfigDataConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        AppConfigDataConfig.builder().build().applyToContainer(container);
+        AppConfigDataConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_APPCONFIGDATA_ENABLED", "true");
     }
@@ -34,7 +33,7 @@ class AppConfigDataConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        AppConfigDataConfig.builder().enabled(false).build().applyToContainer(container);
+        AppConfigDataConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_APPCONFIGDATA_ENABLED", "false");
     }

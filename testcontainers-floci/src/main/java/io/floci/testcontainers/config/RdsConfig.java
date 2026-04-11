@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for RDS-specific container settings.
@@ -67,7 +67,7 @@ public class RdsConfig extends AbstractServiceConfig {
      * @return the maximum port
      */
     public int getProxyMaxPort() {
-    	return proxyBasePort + proxyPortsCount - 1;
+        return proxyBasePort + proxyPortsCount - 1;
     }
 
     /**
@@ -107,7 +107,7 @@ public class RdsConfig extends AbstractServiceConfig {
     }
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_RDS_ENABLED", String.valueOf(isEnabled()));
 
         if (isEnabled()) {
@@ -119,6 +119,16 @@ public class RdsConfig extends AbstractServiceConfig {
 
             if (dockerNetwork != null) {
                 container.withEnv("FLOCI_SERVICES_RDS_DOCKER_NETWORK", dockerNetwork);
+            }
+        }
+    }
+
+    @Override
+    public void applyExposedPortsToContainer(Container<?> container) {
+        if (isEnabled()) {
+            // Expose ports of RDS to make them accessible by the user
+            for (int port = proxyBasePort; port <= getProxyMaxPort(); port++) {
+                container.addExposedPorts(port);
             }
         }
     }

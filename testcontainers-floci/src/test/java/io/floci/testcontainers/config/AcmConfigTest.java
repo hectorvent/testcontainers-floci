@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -29,7 +28,7 @@ class AcmConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        AcmConfig.builder().build().applyToContainer(container);
+        AcmConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_ACM_ENABLED", "true")
@@ -42,7 +41,7 @@ class AcmConfigTest {
         AcmConfig.builder()
                 .validationWaitSeconds(5)
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_ACM_VALIDATION_WAIT_SECONDS", "5");
     }
@@ -50,7 +49,7 @@ class AcmConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        AcmConfig.builder().enabled(false).build().applyToContainer(container);
+        AcmConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_ACM_ENABLED", "false");
     }

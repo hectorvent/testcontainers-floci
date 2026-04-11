@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -26,7 +25,7 @@ class ApiGatewayV2ConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        ApiGatewayV2Config.builder().build().applyToContainer(container);
+        ApiGatewayV2Config.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_APIGATEWAYV2_ENABLED", "true");
     }
@@ -34,7 +33,7 @@ class ApiGatewayV2ConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        ApiGatewayV2Config.builder().enabled(false).build().applyToContainer(container);
+        ApiGatewayV2Config.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_APIGATEWAYV2_ENABLED", "false");
     }

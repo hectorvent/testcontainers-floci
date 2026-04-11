@@ -1,6 +1,6 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Configuration for Lambda-specific container settings.
@@ -38,7 +38,7 @@ public class LambdaConfig extends AbstractServiceConfig {
     private LambdaConfig(Builder builder) {
         super(builder.enabled);
         this.ephemeral = builder.ephemeral;
-        this.exposeRuntimePorts=builder.exposeRuntimePorts;
+        this.exposeRuntimePorts = builder.exposeRuntimePorts;
         this.defaultMemoryMb = builder.defaultMemoryMb;
         this.defaultTimeoutSeconds = builder.defaultTimeoutSeconds;
         this.dockerNetwork = builder.dockerNetwork;
@@ -144,7 +144,7 @@ public class LambdaConfig extends AbstractServiceConfig {
     }
 
     @Override
-    public void applyToContainer(GenericContainer<?> container) {
+    public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_LAMBDA_ENABLED", String.valueOf(isEnabled()));
 
         if (isEnabled()) {
@@ -158,6 +158,15 @@ public class LambdaConfig extends AbstractServiceConfig {
 
             if (dockerNetwork != null) {
                 container.withEnv("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", dockerNetwork);
+            }
+        }
+    }
+
+    @Override
+    public void applyExposedPortsToContainer(Container<?> container) {
+        if (isEnabled() && exposeRuntimePorts) {
+            for (int port = runtimeApiBasePort; port <= getRuntimeApiMaxPort(); port++) {
+                container.addExposedPorts(port);
             }
         }
     }
@@ -178,7 +187,7 @@ public class LambdaConfig extends AbstractServiceConfig {
         private int pollIntervalMs = DEFAULT_POLL_INTERVAL_MS;
         private int containerIdleTimeoutSeconds = DEFAULT_CONTAINER_IDLE_TIMEOUT_SECONDS;
 
-        private Builder(){
+        private Builder() {
             // Allow instantiation only via LambdaConfig.builder()
         }
 

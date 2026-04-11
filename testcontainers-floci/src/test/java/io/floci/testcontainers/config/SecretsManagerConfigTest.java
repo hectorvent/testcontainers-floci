@@ -1,6 +1,5 @@
 package io.floci.testcontainers.config;
 
-import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 
@@ -29,7 +28,7 @@ class SecretsManagerConfigTest {
     @Test
     void shouldApplyDefaultEnvVarsToContainer() {
         GenericContainer<?> container = genericContainer();
-        SecretsManagerConfig.builder().build().applyToContainer(container);
+        SecretsManagerConfig.builder().build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_SECRETSMANAGER_ENABLED", "true")
@@ -42,7 +41,7 @@ class SecretsManagerConfigTest {
         SecretsManagerConfig.builder()
                 .defaultRecoveryWindowDays(7)
                 .build()
-                .applyToContainer(container);
+                .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_SECRETSMANAGER_DEFAULT_RECOVERY_WINDOW_DAYS", "7");
     }
@@ -50,7 +49,7 @@ class SecretsManagerConfigTest {
     @Test
     void shouldApplyDisabledEnvVarToContainer() {
         GenericContainer<?> container = genericContainer();
-        SecretsManagerConfig.builder().enabled(false).build().applyToContainer(container);
+        SecretsManagerConfig.builder().enabled(false).build().applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_SECRETSMANAGER_ENABLED", "false");
     }

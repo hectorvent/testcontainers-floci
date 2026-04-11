@@ -1,12 +1,12 @@
 package io.floci.testcontainers.config;
 
-import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Container;
 
 /**
  * Base class for Floci service configurations.
  *
  * <p>Every service configuration supports an {@link #isEnabled()} flag and can apply its
- * settings to a container via {@link #applyToContainer(GenericContainer)}.
+ * settings to a container via {@link #applyEnvVarsToContainer(Container)}.
  */
 public abstract class AbstractServiceConfig {
 
@@ -33,5 +33,15 @@ public abstract class AbstractServiceConfig {
      *
      * @param container the container to configure
      */
-    public abstract void applyToContainer(GenericContainer<?> container);
+    public void applyEnvVarsToContainer(Container<?> container) {
+    }
+
+    /**
+     * Applies this service configuration to the given container by exposing
+     * the appropriate ports.
+     *
+     * @param container the container to configure
+     */
+    public void applyExposedPortsToContainer(Container<?> container) {
+    }
 }
