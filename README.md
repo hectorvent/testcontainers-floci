@@ -5,14 +5,15 @@
 
 [Testcontainers](https://testcontainers.com/) module for [Floci](https://github.com/floci-io/floci) — a free, open-source local AWS emulator.
 
-Floci provides a single Docker container that emulates 19+ AWS services (S3, SQS, DynamoDB, Lambda, and more) on a single endpoint, making it ideal for integration testing.
+Floci provides a single Docker container that emulates many AWS services (like S3, SQS, DynamoDB, Lambda, and more) on 
+a single endpoint, making it ideal for integration testing.
 
 ## Modules
 
-| Module | Description |
-|--------|-------------|
-| [`testcontainers-floci`](#testcontainers-floci-1) | Core Testcontainers module for starting a Floci container |
-| [`spring-boot-testcontainers-floci`](#spring-boot-testcontainers-floci-1) | Spring Boot auto-configuration with `@ServiceConnection` support |
+| Module                                                                         | Description                                                      |
+|--------------------------------------------------------------------------------|------------------------------------------------------------------|
+| [`testcontainers-floci`](#module-testcontainers-floci)                         | Core Testcontainers module for starting a Floci container        |
+| [`spring-boot-testcontainers-floci`](#module-spring-boot-testcontainers-floci) | Spring Boot auto-configuration with `@ServiceConnection` support |
 
 ## Requirements
 
@@ -28,9 +29,10 @@ Floci provides a single Docker container that emulates 19+ AWS services (S3, SQS
 
 ---
 
-## testcontainers-floci
+## Module: testcontainers-floci
 
-The core module provides a `FlociContainer` class that starts and manages a Floci Docker container for use in integration tests.
+The core module provides a `FlociContainer` class that starts and manages a Floci Docker container for use in 
+integration tests.
 
 ### Installation
 
@@ -145,38 +147,39 @@ class S3IntegrationTest {
 
 ### Configuration
 
-| Method | Description | Default |
-|--------|-------------|---------|
-| `FlociContainer()` | Creates a container with the default image | `hectorvent/floci:latest` |
-| `FlociContainer(String)` | Creates a container with a custom image tag | — |
-| `withRegion(String)` | Sets the AWS region | `us-east-1` |
+| Method                   | Description                                                                                                    |
+|--------------------------|----------------------------------------------------------------------------------------------------------------|
+| `FlociContainer()`       | Creates a container with the default image (`hectorvent/floci:latest`)                                         |
+| `FlociContainer(String)` | Creates a container with a custom image tag                                                                    |
+| `withRegion(String)`     | Sets the AWS region                                                                                            |
+| `withLogLevel(Level)`    | Sets the Floci log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)                                           |
+| `withDedicatedNetwork()` | Creates a dedicated Docker network shared by Floci and its sibling containers (RDS, Lambda, ElastiCache, etc.) |
+| `withLambdaConfig(...)`  | Configures Lambda-specific settings (see [Lambda Configuration](https://floci.io/floci/services/lambda/))      |
 
 ### Container Properties
 
-| Method | Description | Default |
-|--------|-------------|---------|
-| `getEndpoint()` | HTTP endpoint URL (e.g. `http://localhost:32781`) | — |
-| `getRegion()` | Configured AWS region | `us-east-1` |
-| `getAccessKey()` | AWS access key | `test` |
-| `getSecretKey()` | AWS secret key | `test` |
-
-### Supported AWS Services
-
-Floci emulates the following AWS services on a single endpoint:
-
-S3, SQS, SNS, DynamoDB, DynamoDB Streams, KMS, Kinesis, Secrets Manager, IAM, STS, SSM Parameter Store, EventBridge, CloudWatch Logs, CloudWatch Metrics, Cognito, Step Functions, Lambda, API Gateway, CloudFormation, ElastiCache, RDS
-
-> **Note:** Although Floci supports **ElastiCache (Redis)** and **RDS (PostgreSQL/MySQL)**, this library does not yet fully support these services. Contributions are welcome!
+| Method                       | Description                                                        | Default    |
+|------------------------------|--------------------------------------------------------------------|------------|
+| `getEndpoint()`              | HTTP endpoint URL (e.g. `http://localhost:32781`)                  | —          |
+| `getRegion()`                | Configured AWS region                                              | `us-east-1`|
+| `getAccessKey()`             | AWS access key                                                     | `test`     |
+| `getSecretKey()`             | AWS secret key                                                     | `test`     |
+| `getLogLevel()`              | Configured log level                                               | `WARN`     |
+| `getDedicatedNetworkName()`  | Name of the dedicated Docker network, or `null` if not configured  | `null`     |
+| `getLambdaConfig()`          | Current Lambda configuration                                       | —          |
 
 ---
 
-## spring-boot-testcontainers-floci
+## Module: spring-boot-testcontainers-floci
 
-This module integrates `FlociContainer` with [Spring Boot](https://spring.io/projects/spring-boot) and [Spring Cloud AWS](https://awspring.io/) via the `@ServiceConnection` annotation. When a `FlociContainer` is declared as a service connection, **all Spring Cloud AWS clients are automatically configured** to use the Floci instance — no manual endpoint, credentials, or region configuration needed.
+This module integrates `FlociContainer` with [Spring Boot](https://spring.io/projects/spring-boot) and [Spring Cloud AWS](https://awspring.io/) via the `@ServiceConnection` 
+annotation. When a `FlociContainer` is declared as a service connection, **all Spring Cloud AWS clients are automatically 
+configured** to use the Floci instance — no manual endpoint, credentials, or region configuration needed.
 
 ### What it does
 
-- Produces `AwsConnectionDetails` from `FlociContainer`, which Spring Cloud AWS uses to auto-configure endpoint, region, and credentials on all AWS SDK clients
+- Produces `AwsConnectionDetails` from `FlociContainer`, which Spring Cloud AWS uses to auto-configure endpoint, region, 
+and credentials on all AWS SDK clients
 - Automatically enables S3 path-style access on your `S3Client` (required for `Floci`)
 
 ### Installation
@@ -324,14 +327,15 @@ class FlociTestConfig {
 
 ## Conventional Commits
 
-This project uses [Conventional Commits](https://www.conventionalcommits.org/). Commit messages determine the release version automatically:
+This project uses [Conventional Commits](https://www.conventionalcommits.org/). Commit messages determine the release 
+version automatically:
 
-| Prefix | Version bump | Example                                     |
-|--------|-------------|---------------------------------------------|
-| `fix:` | Patch (0.1.0 → 0.1.1) | `fix: handle null region gracefully`        |
-| `feat:` | Minor (0.1.0 → 0.2.0) | `feat: add withServices() configuration`    |
-| `feat!:` or `BREAKING CHANGE:` | Major (0.1.0 → 1.0.0) | `feat!: use next Spring Boot major version` |
-| `chore:`, `docs:`, `ci:` | No release | `docs: update README examples`              |
+| Prefix                          | Version bump          | Example                                     |
+|---------------------------------|-----------------------|---------------------------------------------|
+| `fix:`                          | Patch (0.1.0 → 0.1.1) | `fix: handle null region gracefully`        |
+| `feat:`                         | Minor (0.1.0 → 0.2.0) | `feat: add withServices() configuration`    |
+| `feat!:` or `BREAKING CHANGE:`  | Major (0.1.0 → 1.0.0) | `feat!: use next Spring Boot major version` |
+| `chore:`, `docs:`, `ci:`        | No release            | `docs: update README examples`              |
 
 ## License
 

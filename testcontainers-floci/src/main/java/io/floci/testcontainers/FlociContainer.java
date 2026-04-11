@@ -1,16 +1,20 @@
 package io.floci.testcontainers;
 
+import io.floci.testcontainers.config.LambdaConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
+import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.DockerImageName;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Testcontainers module for <a href="https://github.com/floci-io/floci">Floci</a> — a
@@ -18,6 +22,11 @@ import java.util.UUID;
  *
  * <p>Starts a Floci container that exposes all emulated AWS services on a single HTTP
  * endpoint. Use {@link #getEndpoint()} to obtain the URL for configuring AWS SDK clients.
+ *
+ * <p>Container-based services (RDS, ElastiCache, Lambda, ECS) require access to the Docker
+ * daemon. This module automatically mounts the Docker socket and runs as root to enable
+ * these services. Sibling containers created by Floci (e.g. PostgreSQL for RDS) are
+ * accessible on the Docker host via their mapped ports.
  *
  * <pre>{@code
  * try (FlociContainer floci = new FlociContainer()) {
@@ -39,9 +48,14 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
      */
     public static final int PORT = 4566;
 
+    private static final String DOCKER_SOCKET_PATH = "/var/run/docker.sock";
+    private static final String ROOT_USER = "root";
+
     private static final String DEFAULT_REGION = "us-east-1";
     private static final String DEFAULT_ACCESS_KEY = "test";
     private static final String DEFAULT_SECRET_KEY = "test";
+
+    private LambdaConfig lambdaConfig = LambdaConfig.builder().build();
 
     /**
      * Creates a new Floci container with the default image ({@code hectorvent/floci:latest}).
@@ -67,12 +81,20 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     public FlociContainer(DockerImageName dockerImageName) {
         super(dockerImageName);
         dockerImageName.assertCompatibleWith(DEFAULT_IMAGE_NAME);
-        withExposedPorts(PORT);
+
         withTmpFs(Map.of("/app/data", "rw"));
+        withFileSystemBind(DockerClientFactory.instance().getRemoteDockerUnixSocketPath(), DOCKER_SOCKET_PATH);
+        withCreateContainerCmdModifier(cmd -> cmd.withUser(ROOT_USER)); // Allow binding docker socket
         withLogLevel(Level.WARN);
         waitingFor(Wait.forHttp("/_floci/health")
                 .forPort(PORT)
                 .withStartupTimeout(Duration.ofSeconds(30)));
+
+        configureExposedPorts();
+        configureLambda();
+
+        // Bugfix to make it work on podman - fixed by PR https://github.com/floci-io/floci/pull/343
+        withCopyToContainer(Transferable.of(""), "/.dockerenv");
     }
 
     /**
@@ -166,6 +188,70 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
      */
     public String getDedicatedNetworkName() {
         return getEnvMap().get("FLOCI_SERVICES_DOCKER_NETWORK");
+    }
+
+    /**
+     * Lambda-specific settings such as the Runtime API port range
+     *
+     * @return the Lambda configuration
+     */
+    public LambdaConfig getLambdaConfig() {
+        return lambdaConfig;
+    }
+
+    /**
+     * Configures Lambda-specific settings such as the Runtime API port range.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withLambdaConfig(c -> c...);
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link LambdaConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withLambdaConfig(Consumer<LambdaConfig.Builder> configurer) {
+        LambdaConfig.Builder builder = LambdaConfig.builder();
+        configurer.accept(builder);
+        this.lambdaConfig = builder.build();
+        configureExposedPorts();
+        configureLambda();
+        return this;
+    }
+
+    /**
+     * Configures all exposed ports of the Floci container
+     */
+    private void configureExposedPorts() {
+        withExposedPorts(PORT);
+
+        if (lambdaConfig.isEnabled() && lambdaConfig.isExposeRuntimePorts()) {
+            // Expose ports of Lambda runtimes to make them accessible by the user
+            for (int port = lambdaConfig.getRuntimeApiBasePort(); port <= lambdaConfig.getRuntimeApiMaxPort(); port++) {
+                addExposedPorts(port);
+            }
+        }
+    }
+
+    /**
+     * Applies Lambda Runtime API configuration
+     */
+    private void configureLambda() {
+        withEnv("FLOCI_SERVICES_LAMBDA_ENABLED", String.valueOf(lambdaConfig.isEnabled()));
+
+        if (lambdaConfig.isEnabled()) {
+            withEnv("FLOCI_SERVICES_LAMBDA_EPHEMERAL", String.valueOf(lambdaConfig.isEphemeral()));
+            withEnv("FLOCI_SERVICES_LAMBDA_DEFAULT_MEMORY_MB", String.valueOf(lambdaConfig.getDefaultMemoryMb()));
+            withEnv("FLOCI_SERVICES_LAMBDA_DEFAULT_TIMEOUT_SECONDS", String.valueOf(lambdaConfig.getDefaultTimeoutSeconds()));
+            withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_BASE_PORT", String.valueOf(lambdaConfig.getRuntimeApiBasePort()));
+            withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", String.valueOf(lambdaConfig.getRuntimeApiMaxPort()));
+            withEnv("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", String.valueOf(lambdaConfig.getPollIntervalMs()));
+            withEnv("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", String.valueOf(lambdaConfig.getContainerIdleTimeoutSeconds()));
+
+            if (lambdaConfig.getDockerNetwork() != null) {
+                withEnv("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", lambdaConfig.getDockerNetwork());
+            }
+        }
     }
 
     private static String uniqueShortId() {
