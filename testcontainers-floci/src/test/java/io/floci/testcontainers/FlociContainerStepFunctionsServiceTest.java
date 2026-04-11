@@ -9,7 +9,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FlociContainerSfnServiceTest extends AbstractFlociContainerServiceTest {
+class FlociContainerStepFunctionsServiceTest extends AbstractFlociContainerServiceTest {
 
     static SfnClient sfn;
 

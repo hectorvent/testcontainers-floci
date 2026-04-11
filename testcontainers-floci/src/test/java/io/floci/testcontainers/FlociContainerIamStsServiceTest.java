@@ -7,7 +7,7 @@ import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class FlociContainerStsServiceTest extends AbstractFlociContainerServiceTest {
+class FlociContainerIamStsServiceTest extends AbstractFlociContainerServiceTest {
 
     static StsClient sts;
 
