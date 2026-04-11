@@ -75,4 +75,28 @@ class FlociContainerTest {
         }
     }
 
+    @Test
+    void shouldConfigureDedicatedNetwork() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withDedicatedNetwork();
+
+            String networkName = container.getDedicatedNetworkName();
+            assertThat(networkName).startsWith("floci-network-");
+            assertThat(networkName).hasSize("floci-network-".length() + 8);
+            assertThat(container.getNetwork()).isNotNull();
+        }
+    }
+
+    @Test
+    void shouldCreateUniqueNetworkPerCall() {
+        try (FlociContainer container1 = new FlociContainer();
+             FlociContainer container2 = new FlociContainer()) {
+            container1.withDedicatedNetwork();
+            container2.withDedicatedNetwork();
+
+            String network1 = container1.getDedicatedNetworkName();
+            String network2 = container2.getDedicatedNetworkName();
+            assertThat(network1).isNotEqualTo(network2);
+        }
+    }
 }
