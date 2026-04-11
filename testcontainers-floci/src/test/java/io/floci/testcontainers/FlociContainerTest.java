@@ -38,6 +38,36 @@ class FlociContainerTest {
     }
 
     @Test
+    void shouldReturnDefaultAvailabilityZone() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getDefaultAvailabilityZone()).isEqualTo("us-east-1a");
+        }
+    }
+
+    @Test
+    void shouldReturnCustomAvailabilityZone() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withDefaultAvailabilityZone("eu-west-1a");
+            assertThat(container.getDefaultAvailabilityZone()).isEqualTo("eu-west-1a");
+        }
+    }
+
+    @Test
+    void shouldReturnDefaultAccountId() {
+        try (FlociContainer container = new FlociContainer()) {
+            assertThat(container.getDefaultAccountId()).isEqualTo("000000000000");
+        }
+    }
+
+    @Test
+    void shouldReturnCustomAccountId() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withDefaultAccountId("123456789012");
+            assertThat(container.getDefaultAccountId()).isEqualTo("123456789012");
+        }
+    }
+
+    @Test
     void shouldReturnDefaultCredentials() {
         try (FlociContainer container = new FlociContainer()) {
             assertThat(container.getAccessKey()).isEqualTo("test");

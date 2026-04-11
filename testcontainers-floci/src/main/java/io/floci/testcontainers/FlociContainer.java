@@ -76,6 +76,8 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private static final String ROOT_USER = "root";
 
     private static final String DEFAULT_REGION = "us-east-1";
+    private static final String DEFAULT_AVAILABILITY_ZONE = "us-east-1a";
+    private static final String DEFAULT_ACCOUNT_ID = "000000000000";
     private static final String DEFAULT_ACCESS_KEY = "test";
     private static final String DEFAULT_SECRET_KEY = "test";
 
@@ -180,7 +182,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
-     * Returns the configured AWS region. Defaults to {@code us-east-1}.
+     * Returns the configured AWS region. Defaults to {@value DEFAULT_REGION}.
      *
      * @return the AWS region
      */
@@ -189,7 +191,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
-     * Returns the AWS access key to use with this instance. Defaults to {@code test}.
+     * Returns the AWS access key to use with this instance. Defaults to {@value DEFAULT_ACCESS_KEY}.
      *
      * @return the access key
      */
@@ -198,7 +200,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
-     * Returns the AWS secret key to use with this instance. Defaults to {@code test}.
+     * Returns the AWS secret key to use with this instance. Defaults to {@value DEFAULT_SECRET_KEY}.
      *
      * @return the secret key
      */
@@ -214,6 +216,44 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
      */
     public FlociContainer withRegion(String region) {
         return withEnv("FLOCI_DEFAULT_REGION", region);
+    }
+
+    /**
+     * Returns the configured default availability zone. Defaults to {@value DEFAULT_AVAILABILITY_ZONE}.
+     *
+     * @return the availability zone
+     */
+    public String getDefaultAvailabilityZone() {
+        return getEnvMap().getOrDefault("FLOCI_DEFAULT_AVAILABILITY_ZONE", DEFAULT_AVAILABILITY_ZONE);
+    }
+
+    /**
+     * Sets the default availability zone for this Floci instance.
+     *
+     * @param availabilityZone the availability zone (e.g. {@code eu-west-1a})
+     * @return this container instance
+     */
+    public FlociContainer withDefaultAvailabilityZone(String availabilityZone) {
+        return withEnv("FLOCI_DEFAULT_AVAILABILITY_ZONE", availabilityZone);
+    }
+
+    /**
+     * Returns the configured default AWS account ID. Defaults to {@value DEFAULT_ACCOUNT_ID}.
+     *
+     * @return the account ID
+     */
+    public String getDefaultAccountId() {
+        return getEnvMap().getOrDefault("FLOCI_DEFAULT_ACCOUNT_ID", DEFAULT_ACCOUNT_ID);
+    }
+
+    /**
+     * Sets the default AWS account ID for this Floci instance.
+     *
+     * @param accountId the AWS account ID (e.g. {@code 123456789012})
+     * @return this container instance
+     */
+    public FlociContainer withDefaultAccountId(String accountId) {
+        return withEnv("FLOCI_DEFAULT_ACCOUNT_ID", accountId);
     }
 
     /**
