@@ -147,28 +147,39 @@ class S3IntegrationTest {
 
 ### Configuration
 
-| Method                   | Description                                                                                                    |
-|--------------------------|----------------------------------------------------------------------------------------------------------------|
-| `FlociContainer()`       | Creates a container with the default image (`hectorvent/floci:latest`)                                         |
-| `FlociContainer(String)` | Creates a container with a custom image tag                                                                    |
-| `withRegion(String)`     | Sets the AWS region                                                                                            |
-| `withLogLevel(Level)`    | Sets the Floci log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)                                           |
+| Method                   | Description                                                                                                   |
+|--------------------------|---------------------------------------------------------------------------------------------------------------|
+| `FlociContainer()`       | Creates a container with the default image (`hectorvent/floci:latest`)                                        |
+| `FlociContainer(String)` | Creates a container with a custom image tag                                                                   |
+| `withRegion(String)`     | Sets the AWS region                                                                                           |
+| `withLogLevel(Level)`    | Sets the Floci log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)                                          |
 | `withDedicatedNetwork()` | Creates a dedicated Docker network shared by Floci and its sibling containers (RDS, Lambda, ElastiCache, etc.) |
-| `withLambdaConfig(...)`  | Configures Lambda-specific settings (see [Lambda Configuration](https://floci.io/floci/services/lambda/))      |
-| `withRdsConfig(...)`     | Configures RDS-specific settings (see [RDS Configuration](https://floci.io/floci/services/rds/))               |
+| `with*Config(...)`       | Configures service-specific settings (see [Service Configuration](https://floci.io/floci/services/))                |
+
+Each AWS service emulated by Floci can be individually configured via a `with*Config(...)` method on
+`FlociContainer`. Every service configuration supports at least an `enabled(boolean)` flag to enable or
+disable the service. Some services expose additional settings.
+
+Example — disable a service and customize another:
+
+```java
+FlociContainer floci = new FlociContainer()
+    .withSqsConfig(c -> c.defaultVisibilityTimeout(60).maxMessageSize(131072))
+    .withDynamoDbConfig(c -> c.enabled(false));
+```
 
 ### Container Properties
 
-| Method                       | Description                                                        | Default    |
-|------------------------------|--------------------------------------------------------------------|------------|
-| `getEndpoint()`              | HTTP endpoint URL (e.g. `http://localhost:32781`)                  | —          |
-| `getRegion()`                | Configured AWS region                                              | `us-east-1`|
-| `getAccessKey()`             | AWS access key                                                     | `test`     |
-| `getSecretKey()`             | AWS secret key                                                     | `test`     |
-| `getLogLevel()`              | Configured log level                                               | `WARN`     |
-| `getDedicatedNetworkName()`  | Name of the dedicated Docker network, or `null` if not configured  | `null`     |
-| `getLambdaConfig()`          | Current Lambda configuration                                       | —          |
-| `getRdsConfig()`             | Current RDS configuration                                          | —          |
+| Method                       | Description                                                       | Default    |
+|------------------------------|-------------------------------------------------------------------|------------|
+| `getEndpoint()`              | HTTP endpoint URL (e.g. `http://localhost:32781`)                 | —          |
+| `getRegion()`                | Configured AWS region                                             | `us-east-1`|
+| `getAccessKey()`             | AWS access key                                                    | `test`     |
+| `getSecretKey()`             | AWS secret key                                                    | `test`     |
+| `getLogLevel()`              | Configured log level                                              | `WARN`     |
+| `getDedicatedNetworkName()`  | Name of the dedicated Docker network, or `null` if not configured | `null`     |
+| `get*Config()`          | Current configuration of a service                                | —          |
+
 
 ---
 

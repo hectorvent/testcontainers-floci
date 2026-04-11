@@ -1,5 +1,7 @@
 package io.floci.testcontainers.config;
 
+import org.testcontainers.containers.GenericContainer;
+
 /**
  * Configuration for RDS-specific container settings.
  *
@@ -12,16 +14,14 @@ package io.floci.testcontainers.config;
  *     .build();
  * }</pre>
  */
-public class RdsConfig {
+public class RdsConfig extends AbstractServiceConfig {
 
-    private static final boolean DEFAULT_ENABLED = true;
     private static final int DEFAULT_PROXY_BASE_PORT = 7000;
     private static final int DEFAULT_PROXY_PORTS_COUNT = 10;
     private static final String DEFAULT_POSTGRES_IMAGE = "postgres:16-alpine";
     private static final String DEFAULT_MYSQL_IMAGE = "mysql:8.0";
     private static final String DEFAULT_MARIADB_IMAGE = "mariadb:11";
 
-    private final boolean enabled;
     private final int proxyBasePort;
     private final int proxyPortsCount;
     private final String defaultPostgresImage;
@@ -30,7 +30,7 @@ public class RdsConfig {
     private final String dockerNetwork;
 
     private RdsConfig(Builder builder) {
-        this.enabled = builder.enabled;
+        super(builder.enabled);
         this.proxyBasePort = builder.proxyBasePort;
         this.proxyPortsCount = builder.proxyPortsCount;
         this.defaultPostgresImage = builder.defaultPostgresImage;
@@ -41,15 +41,6 @@ public class RdsConfig {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * Returns whether the RDS service is enabled.
-     *
-     * @return {@code true} if RDS is enabled
-     */
-    public boolean isEnabled() {
-        return enabled;
     }
 
     /**
@@ -113,6 +104,23 @@ public class RdsConfig {
      */
     public String getDockerNetwork() {
         return dockerNetwork;
+    }
+
+    @Override
+    public void applyToContainer(GenericContainer<?> container) {
+        container.withEnv("FLOCI_SERVICES_RDS_ENABLED", String.valueOf(isEnabled()));
+
+        if (isEnabled()) {
+            container.withEnv("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", String.valueOf(proxyBasePort));
+            container.withEnv("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", String.valueOf(getProxyMaxPort()));
+            container.withEnv("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", defaultPostgresImage);
+            container.withEnv("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", defaultMysqlImage);
+            container.withEnv("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", defaultMariadbImage);
+
+            if (dockerNetwork != null) {
+                container.withEnv("FLOCI_SERVICES_RDS_DOCKER_NETWORK", dockerNetwork);
+            }
+        }
     }
 
     /**

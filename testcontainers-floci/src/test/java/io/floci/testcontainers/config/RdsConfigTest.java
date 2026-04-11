@@ -1,7 +1,10 @@
 package io.floci.testcontainers.config;
 
+import io.floci.testcontainers.FlociContainer;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
 
+import static io.floci.testcontainers.testing.ContainerUtils.genericContainer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RdsConfigTest {
@@ -37,5 +40,54 @@ class RdsConfigTest {
         assertThat(config.getDefaultMysqlImage()).isEqualTo("mysql:9.0");
         assertThat(config.getDefaultMariadbImage()).isEqualTo("mariadb:10");
         assertThat(config.getDockerNetwork()).isEqualTo("my-rds-network");
+    }
+
+    @Test
+    void shouldApplyDefaultEnvVarsToContainer() {
+        GenericContainer<?> container = genericContainer();
+        RdsConfig.builder().build().applyToContainer(container);
+
+        assertThat(container.getEnvMap())
+                .containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true")
+                .containsEntry("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", "7000")
+                .containsEntry("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", "7009")
+                .containsEntry("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", "postgres:16-alpine")
+                .containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", "mysql:8.0")
+                .containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", "mariadb:11")
+                .doesNotContainKey("FLOCI_SERVICES_RDS_DOCKER_NETWORK");
+    }
+
+    @Test
+    void shouldApplyCustomEnvVarsToContainer() {
+        GenericContainer<?> container = genericContainer();
+        RdsConfig.builder()
+                .enabled(true)
+                .proxyPortRange(8000, 100)
+                .defaultPostgresImage("postgres:15")
+                .defaultMysqlImage("mysql:9.0")
+                .defaultMariadbImage("mariadb:10")
+                .dockerNetwork("my-rds-network")
+                .build()
+                .applyToContainer(container);
+
+        assertThat(container.getEnvMap())
+                .containsEntry("FLOCI_SERVICES_RDS_ENABLED", "true")
+                .containsEntry("FLOCI_SERVICES_RDS_PROXY_BASE_PORT", "8000")
+                .containsEntry("FLOCI_SERVICES_RDS_PROXY_MAX_PORT", "8099")
+                .containsEntry("FLOCI_SERVICES_RDS_DEFAULT_POSTGRES_IMAGE", "postgres:15")
+                .containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MYSQL_IMAGE", "mysql:9.0")
+                .containsEntry("FLOCI_SERVICES_RDS_DEFAULT_MARIADB_IMAGE", "mariadb:10")
+                .containsEntry("FLOCI_SERVICES_RDS_DOCKER_NETWORK", "my-rds-network");
+    }
+
+    @Test
+    void shouldNotExposeRdsPortsWhenDisabled() {
+        try (FlociContainer container = new FlociContainer()) {
+            container.withRdsConfig(c -> c.enabled(false).proxyPortRange(8000, 100));
+
+            var env = container.getEnvMap();
+            assertThat(env).containsEntry("FLOCI_SERVICES_RDS_ENABLED", "false");
+            assertThat(container.getExposedPorts()).doesNotContain(8000);
+        }
     }
 }

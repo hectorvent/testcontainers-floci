@@ -1,5 +1,7 @@
 package io.floci.testcontainers.config;
 
+import org.testcontainers.containers.GenericContainer;
+
 /**
  * Configuration for Lambda-specific container settings.
  *
@@ -12,9 +14,8 @@ package io.floci.testcontainers.config;
  *     .build();
  * }</pre>
  */
-public class LambdaConfig {
+public class LambdaConfig extends AbstractServiceConfig {
 
-    private static final boolean DEFAULT_ENABLED = true;
     private static final boolean DEFAULT_EPHEMERAL = false;
     private static final boolean DEFAULT_EXPOSE_RUNTIME_PORTS = false;
     private static final int DEFAULT_MEMORY_MB = 128;
@@ -24,7 +25,6 @@ public class LambdaConfig {
     private static final int DEFAULT_POLL_INTERVAL_MS = 1000;
     private static final int DEFAULT_CONTAINER_IDLE_TIMEOUT_SECONDS = 300;
 
-    private final boolean enabled;
     private final boolean ephemeral;
     private final boolean exposeRuntimePorts;
     private final int defaultMemoryMb;
@@ -36,7 +36,7 @@ public class LambdaConfig {
     private final int containerIdleTimeoutSeconds;
 
     private LambdaConfig(Builder builder) {
-        this.enabled = builder.enabled;
+        super(builder.enabled);
         this.ephemeral = builder.ephemeral;
         this.exposeRuntimePorts=builder.exposeRuntimePorts;
         this.defaultMemoryMb = builder.defaultMemoryMb;
@@ -50,15 +50,6 @@ public class LambdaConfig {
 
     public static Builder builder() {
         return new Builder();
-    }
-
-    /**
-     * Returns whether the Lambda service is enabled.
-     *
-     * @return {@code true} if Lambda is enabled
-     */
-    public boolean isEnabled() {
-        return enabled;
     }
 
     /**
@@ -150,6 +141,25 @@ public class LambdaConfig {
      */
     public int getContainerIdleTimeoutSeconds() {
         return containerIdleTimeoutSeconds;
+    }
+
+    @Override
+    public void applyToContainer(GenericContainer<?> container) {
+        container.withEnv("FLOCI_SERVICES_LAMBDA_ENABLED", String.valueOf(isEnabled()));
+
+        if (isEnabled()) {
+            container.withEnv("FLOCI_SERVICES_LAMBDA_EPHEMERAL", String.valueOf(ephemeral));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_DEFAULT_MEMORY_MB", String.valueOf(defaultMemoryMb));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_DEFAULT_TIMEOUT_SECONDS", String.valueOf(defaultTimeoutSeconds));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_BASE_PORT", String.valueOf(runtimeApiBasePort));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", String.valueOf(getRuntimeApiMaxPort()));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", String.valueOf(pollIntervalMs));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", String.valueOf(containerIdleTimeoutSeconds));
+
+            if (dockerNetwork != null) {
+                container.withEnv("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", dockerNetwork);
+            }
+        }
     }
 
     /**
