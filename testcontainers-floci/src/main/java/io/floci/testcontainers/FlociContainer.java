@@ -11,11 +11,15 @@ import io.floci.testcontainers.config.CloudWatchMetricsConfig;
 import io.floci.testcontainers.config.CognitoConfig;
 import io.floci.testcontainers.config.DynamoDbConfig;
 import io.floci.testcontainers.config.Ec2Config;
+import io.floci.testcontainers.config.EcrConfig;
+import io.floci.testcontainers.config.EcsConfig;
+import io.floci.testcontainers.config.ElastiCacheConfig;
 import io.floci.testcontainers.config.EventBridgeConfig;
 import io.floci.testcontainers.config.IamConfig;
 import io.floci.testcontainers.config.KinesisConfig;
 import io.floci.testcontainers.config.KmsConfig;
 import io.floci.testcontainers.config.LambdaConfig;
+import io.floci.testcontainers.config.OpenSearchConfig;
 import io.floci.testcontainers.config.RdsConfig;
 import io.floci.testcontainers.config.S3Config;
 import io.floci.testcontainers.config.SchedulerConfig;
@@ -29,16 +33,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 /**
  * Testcontainers module for <a href="https://github.com/floci-io/floci">Floci</a> — a
@@ -81,6 +93,8 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private static final String DEFAULT_ACCESS_KEY = "test";
     private static final String DEFAULT_SECRET_KEY = "test";
 
+    private final Path hostPersistentPath;
+
     private AcmConfig acmConfig = AcmConfig.builder().build();
     private ApiGatewayConfig apiGatewayConfig = ApiGatewayConfig.builder().build();
     private ApiGatewayV2Config apiGatewayV2Config = ApiGatewayV2Config.builder().build();
@@ -92,11 +106,15 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private CognitoConfig cognitoConfig = CognitoConfig.builder().build();
     private DynamoDbConfig dynamoDbConfig = DynamoDbConfig.builder().build();
     private Ec2Config ec2Config = Ec2Config.builder().build();
+    private EcrConfig ecrConfig = EcrConfig.builder().build();
+    private EcsConfig ecsConfig = EcsConfig.builder().build();
+    private ElastiCacheConfig elastiCacheConfig = ElastiCacheConfig.builder().build();
     private EventBridgeConfig eventBridgeConfig = EventBridgeConfig.builder().build();
     private IamConfig iamConfig = IamConfig.builder().build();
     private KinesisConfig kinesisConfig = KinesisConfig.builder().build();
     private KmsConfig kmsConfig = KmsConfig.builder().build();
     private LambdaConfig lambdaConfig = LambdaConfig.builder().build();
+    private OpenSearchConfig openSearchConfig = OpenSearchConfig.builder().build();
     private RdsConfig rdsConfig = RdsConfig.builder().build();
     private S3Config s3Config = S3Config.builder().build();
     private SchedulerConfig schedulerConfig = SchedulerConfig.builder().build();
@@ -132,19 +150,41 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         super(dockerImageName);
         dockerImageName.assertCompatibleWith(DEFAULT_IMAGE_NAME);
 
-        withTmpFs(Map.of("/app/data", "rw"));
+        // Store all persistent data from the containers in a temporary directory on the host, which is
+        // automatically cleaned up after the test run.
+        try {
+            this.hostPersistentPath = Files.createTempDirectory("floci-").toAbsolutePath();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to create temporary data directory", e);
+        }
+        withFileSystemBind(hostPersistentPath.toString(), "/app/data", BindMode.READ_WRITE);
+        withEnv("FLOCI_STORAGE_HOST_PERSISTENT_PATH", hostPersistentPath.toString());
+
+        // Allow creation of child container instances (e.g. for ECS or RDS service)
         withFileSystemBind(DockerClientFactory.instance().getRemoteDockerUnixSocketPath(), DOCKER_SOCKET_PATH);
         withCreateContainerCmdModifier(cmd -> cmd.withUser(ROOT_USER)); // Allow binding docker socket
+
+        // Configure observability and healthcheck
         withLogLevel(Level.WARN);
         waitingFor(Wait.forHttp("/_floci/health")
                 .forPort(PORT)
                 .withStartupTimeout(Duration.ofSeconds(30)));
 
+        // Configure services
         configureExposedPorts();
         configureEnvVars();
+    }
 
-        // Bugfix to make it work on podman - fixed by PR https://github.com/floci-io/floci/pull/343
-        withCopyToContainer(Transferable.of(""), "/.dockerenv");
+    @Override
+    public void stop() {
+        super.stop();
+
+        // Cleanup persistent storage
+        try (Stream<Path> paths = Files.walk(hostPersistentPath)) {
+            paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+        } catch (IOException e) {
+            // Ignore exception silently
+        }
     }
 
     /**
@@ -587,6 +627,98 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
+     * ECR-specific settings such as registry ports and TLS configuration
+     *
+     * @return the ECR configuration
+     */
+    public EcrConfig getEcrConfig() {
+        return ecrConfig;
+    }
+
+    /**
+     * Configures ECR-specific settings such as registry ports and TLS configuration.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withEcrConfig(c -> c
+     *         .registryPortRange(5000, 100)
+     *         .registryImage("registry:2"));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link EcrConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withEcrConfig(Consumer<EcrConfig.Builder> configurer) {
+        EcrConfig.Builder builder = EcrConfig.builder();
+        configurer.accept(builder);
+        this.ecrConfig = builder.build();
+        configureExposedPorts();
+        ecrConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * ECS-specific settings such as mock mode and default task resources
+     *
+     * @return the ECS configuration
+     */
+    public EcsConfig getEcsConfig() {
+        return ecsConfig;
+    }
+
+    /**
+     * Configures ECS-specific settings such as mock mode and default task resources.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withEcsConfig(c -> c
+     *         .mock(true)
+     *         .defaultMemoryMb(1024));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link EcsConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withEcsConfig(Consumer<EcsConfig.Builder> configurer) {
+        EcsConfig.Builder builder = EcsConfig.builder();
+        configurer.accept(builder);
+        this.ecsConfig = builder.build();
+        ecsConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * ElastiCache-specific settings such as proxy ports and default image
+     *
+     * @return the ElastiCache configuration
+     */
+    public ElastiCacheConfig getElastiCacheConfig() {
+        return elastiCacheConfig;
+    }
+
+    /**
+     * Configures ElastiCache-specific settings such as proxy ports and default image.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withElastiCacheConfig(c -> c
+     *         .proxyPortRange(6379, 21)
+     *         .defaultImage("valkey/valkey:8"));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link ElastiCacheConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withElastiCacheConfig(Consumer<ElastiCacheConfig.Builder> configurer) {
+        ElastiCacheConfig.Builder builder = ElastiCacheConfig.builder();
+        configurer.accept(builder);
+        this.elastiCacheConfig = builder.build();
+        configureExposedPorts();
+        elastiCacheConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
      * EventBridge-specific settings
      *
      * @return the EventBridge configuration
@@ -724,6 +856,37 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         this.lambdaConfig = builder.build();
         configureExposedPorts();
         lambdaConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * OpenSearch-specific settings such as mode, proxy ports and default image
+     *
+     * @return the OpenSearch configuration
+     */
+    public OpenSearchConfig getOpenSearchConfig() {
+        return openSearchConfig;
+    }
+
+    /**
+     * Configures OpenSearch-specific settings such as mode, proxy ports and default image.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withOpenSearchConfig(c -> c
+     *         .mode("docker")
+     *         .proxyPortRange(9400, 100));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link OpenSearchConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withOpenSearchConfig(Consumer<OpenSearchConfig.Builder> configurer) {
+        OpenSearchConfig.Builder builder = OpenSearchConfig.builder();
+        configurer.accept(builder);
+        this.openSearchConfig = builder.build();
+        configureExposedPorts();
+        openSearchConfig.applyEnvVarsToContainer(this);
         return this;
     }
 
@@ -989,6 +1152,9 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
 
         lambdaConfig.applyExposedPortsToContainer(this);
         rdsConfig.applyExposedPortsToContainer(this);
+        elastiCacheConfig.applyExposedPortsToContainer(this);
+        openSearchConfig.applyExposedPortsToContainer(this);
+        ecrConfig.applyExposedPortsToContainer(this);
     }
 
     /**
@@ -1006,11 +1172,15 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         cognitoConfig.applyEnvVarsToContainer(this);
         dynamoDbConfig.applyEnvVarsToContainer(this);
         ec2Config.applyEnvVarsToContainer(this);
+        ecrConfig.applyEnvVarsToContainer(this);
+        ecsConfig.applyEnvVarsToContainer(this);
+        elastiCacheConfig.applyEnvVarsToContainer(this);
         eventBridgeConfig.applyEnvVarsToContainer(this);
         iamConfig.applyEnvVarsToContainer(this);
         kinesisConfig.applyEnvVarsToContainer(this);
         kmsConfig.applyEnvVarsToContainer(this);
         lambdaConfig.applyEnvVarsToContainer(this);
+        openSearchConfig.applyEnvVarsToContainer(this);
         rdsConfig.applyEnvVarsToContainer(this);
         s3Config.applyEnvVarsToContainer(this);
         schedulerConfig.applyEnvVarsToContainer(this);
