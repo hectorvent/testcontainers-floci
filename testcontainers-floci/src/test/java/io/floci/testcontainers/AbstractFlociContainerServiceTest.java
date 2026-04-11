@@ -1,5 +1,6 @@
 package io.floci.testcontainers;
 
+import org.slf4j.event.Level;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
@@ -13,7 +14,7 @@ import java.net.URI;
  */
 abstract class AbstractFlociContainerServiceTest {
 
-    protected static final FlociContainer floci = new FlociContainer();
+    protected static final FlociContainer floci = new FlociContainer().withLogLevel(Level.DEBUG);
 
     static {
         floci.start();
