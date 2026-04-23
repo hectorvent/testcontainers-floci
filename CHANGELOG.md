@@ -1,3 +1,14 @@
+# [2.2.0](https://github.com/floci-io/testcontainers-floci/compare/v2.1.0...v2.2.0) (2026-04-23)
+
+
+### Features
+
+* added configuration support for default account id and default availability zone ([4739338](https://github.com/floci-io/testcontainers-floci/commit/473933817ce66e102ba9ee26cc040484d4854357))
+* added support for configuring all services supported by Floci that don't startup child containers ([4b4c41f](https://github.com/floci-io/testcontainers-floci/commit/4b4c41f95da3081d8e245cbfe3a28a34c4f2de4a))
+* floci docker image moved ([0203051](https://github.com/floci-io/testcontainers-floci/commit/0203051708671897bf4b010041967efa5a074d2d))
+
+
+
 # [2.1.0](https://github.com/floci-io/testcontainers-floci/compare/v2.0.1...v2.1.0) (2026-04-11)
 
 
