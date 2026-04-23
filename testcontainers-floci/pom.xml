@@ -195,7 +195,7 @@
         <dependency>
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
-            <version>6.8.2.RELEASE</version>
+            <version>7.5.1.RELEASE</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
