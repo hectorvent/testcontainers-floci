@@ -12,7 +12,7 @@ class FlociContainerTest {
     @Test
     void shouldCreateContainerWithDefaultImage() {
         try (FlociContainer container = new FlociContainer()) {
-            assertThat(container.getDockerImageName()).isEqualTo("hectorvent/floci:latest");
+            assertThat(container.getDockerImageName()).isEqualTo("floci/floci:latest");
         }
     }
 
