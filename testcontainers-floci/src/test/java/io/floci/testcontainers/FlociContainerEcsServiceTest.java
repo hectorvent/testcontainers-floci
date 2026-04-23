@@ -12,13 +12,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.List;
 
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @TestMethodOrder(OrderAnnotation.class)
-@Disabled("Not working without change to floci that exposes ECS ports to host")
+@Disabled
 class FlociContainerEcsServiceTest extends AbstractFlociContainerServiceTest {
 
     static EcsClient ecs;
@@ -80,26 +82,21 @@ class FlociContainerEcsServiceTest extends AbstractFlociContainerServiceTest {
 
     @Test
     @Order(4)
-    void shouldReachRunningState() throws InterruptedException {
-        for (int attempt = 1; attempt <= 60; attempt++) {
-            List<Task> tasks = ecs.describeTasks(b -> b
-                    .cluster(clusterName)
-                    .tasks(taskArn)).tasks();
-
-            assertThat(tasks).hasSize(1);
-            String status = tasks.get(0).lastStatus();
-
-            if ("RUNNING".equals(status)) {
-                return;
-            }
-            Thread.sleep(2000);
-        }
-        throw new AssertionError("Task did not reach RUNNING status within 120 seconds");
+    void shouldReachRunningState() {
+        await().atMost(Duration.ofSeconds(120))
+                .pollInterval(Duration.ofSeconds(2))
+                .untilAsserted(() -> {
+                    List<Task> tasks = ecs.describeTasks(b -> b
+                            .cluster(clusterName)
+                            .tasks(taskArn)).tasks();
+                    assertThat(tasks).hasSize(1);
+                    assertThat(tasks.get(0).lastStatus()).isEqualTo("RUNNING");
+                });
     }
 
     @Test
     @Order(5)
-    void shouldConnectToTaskWebServer() throws Exception {
+    void shouldConnectToTaskWebServer() {
         int hostPort = ecs.describeTasks(b -> b
                         .cluster(clusterName)
                         .tasks(taskArn))
@@ -114,21 +111,16 @@ class FlociContainerEcsServiceTest extends AbstractFlociContainerServiceTest {
 
         URI uri = URI.create("http://localhost:" + hostPort);
         HttpRequest request = HttpRequest.newBuilder().uri(uri).GET().build();
-
         HttpClient httpClient = HttpClient.newHttpClient();
-        for (int attempt = 1; ; attempt++) {
-            try {
-                HttpResponse<String> response = httpClient.send(request, ofString());
-                assertThat(response.statusCode()).isEqualTo(200);
-                assertThat(response.body()).contains("Hostname:");
-                return;
-            } catch (Exception e) {
-                if (attempt >= 15) {
-                    throw new RuntimeException("Failed to connect to whoami container after 15 attempts", e);
-                }
-                Thread.sleep(1000);
-            }
-        }
+
+        await().atMost(Duration.ofSeconds(15))
+                .pollInterval(Duration.ofSeconds(1))
+                .ignoreExceptions()
+                .untilAsserted(() -> {
+                    HttpResponse<String> response = httpClient.send(request, ofString());
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    assertThat(response.body()).contains("Hostname:");
+                });
     }
 
     @Test
@@ -148,21 +140,16 @@ class FlociContainerEcsServiceTest extends AbstractFlociContainerServiceTest {
 
     @Test
     @Order(7)
-    void shouldReachStoppedState() throws InterruptedException {
-        for (int attempt = 1; attempt <= 60; attempt++) {
-            List<Task> tasks = ecs.describeTasks(b -> b
-                    .cluster(clusterName)
-                    .tasks(taskArn)).tasks();
-
-            assertThat(tasks).hasSize(1);
-            String status = tasks.get(0).lastStatus();
-
-            if ("STOPPED".equals(status)) {
-                return;
-            }
-            Thread.sleep(2000);
-        }
-        throw new AssertionError("Task did not reach STOPPED status within 120 seconds");
+    void shouldReachStoppedState() {
+        await().atMost(Duration.ofSeconds(120))
+                .pollInterval(Duration.ofSeconds(2))
+                .untilAsserted(() -> {
+                    List<Task> tasks = ecs.describeTasks(b -> b
+                            .cluster(clusterName)
+                            .tasks(taskArn)).tasks();
+                    assertThat(tasks).hasSize(1);
+                    assertThat(tasks.get(0).lastStatus()).isEqualTo("STOPPED");
+                });
     }
 
     @Test

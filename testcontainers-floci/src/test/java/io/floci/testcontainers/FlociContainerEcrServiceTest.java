@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestMethodOrder(OrderAnnotation.class)
-@Disabled("Not working without change to floci that correctly uses host port")
 class FlociContainerEcrServiceTest extends AbstractFlociContainerServiceTest {
 
     private static final String SOURCE_IMAGE_NAME = "alpine";
@@ -76,6 +75,7 @@ class FlociContainerEcrServiceTest extends AbstractFlociContainerServiceTest {
 
     @Test
     @Order(4)
+    @Disabled
     void shouldPushImage() throws Exception {
         DockerClient dockerClient = DockerClientFactory.instance().client();
 
@@ -97,6 +97,7 @@ class FlociContainerEcrServiceTest extends AbstractFlociContainerServiceTest {
 
     @Test
     @Order(5)
+    @Disabled
     void shouldListPushedImage() {
         List<ImageIdentifier> imageIds = ecr.listImages(b -> b.repositoryName(repoName)).imageIds();
 
@@ -106,6 +107,7 @@ class FlociContainerEcrServiceTest extends AbstractFlociContainerServiceTest {
 
     @Test
     @Order(6)
+    @Disabled
     void shouldPullImage() throws Exception {
         DockerClient dockerClient = DockerClientFactory.instance().client();
 

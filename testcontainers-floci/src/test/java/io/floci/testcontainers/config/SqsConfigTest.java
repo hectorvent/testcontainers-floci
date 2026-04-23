@@ -14,6 +14,7 @@ class SqsConfigTest {
         assertThat(config.isEnabled()).isTrue();
         assertThat(config.getDefaultVisibilityTimeout()).isEqualTo(30);
         assertThat(config.getMaxMessageSize()).isEqualTo(262144);
+        assertThat(config.isClearFifoDeduplicationCacheOnPurge()).isTrue();
     }
 
     @Test
@@ -22,10 +23,12 @@ class SqsConfigTest {
                 .enabled(false)
                 .defaultVisibilityTimeout(60)
                 .maxMessageSize(131072)
+                .clearFifoDeduplicationCacheOnPurge(false)
                 .build();
         assertThat(config.isEnabled()).isFalse();
         assertThat(config.getDefaultVisibilityTimeout()).isEqualTo(60);
         assertThat(config.getMaxMessageSize()).isEqualTo(131072);
+        assertThat(config.isClearFifoDeduplicationCacheOnPurge()).isFalse();
     }
 
     @Test
@@ -36,7 +39,8 @@ class SqsConfigTest {
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_SQS_ENABLED", "true")
                 .containsEntry("FLOCI_SERVICES_SQS_DEFAULT_VISIBILITY_TIMEOUT", "30")
-                .containsEntry("FLOCI_SERVICES_SQS_MAX_MESSAGE_SIZE", "262144");
+                .containsEntry("FLOCI_SERVICES_SQS_MAX_MESSAGE_SIZE", "262144")
+                .containsEntry("FLOCI_SERVICES_SQS_CLEAR_FIFO_DEDUPLICATION_CACHE_ON_PURGE", "true");
     }
 
     @Test
@@ -45,12 +49,14 @@ class SqsConfigTest {
         SqsConfig.builder()
                 .defaultVisibilityTimeout(60)
                 .maxMessageSize(131072)
+                .clearFifoDeduplicationCacheOnPurge(false)
                 .build()
                 .applyEnvVarsToContainer(container);
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_SQS_DEFAULT_VISIBILITY_TIMEOUT", "60")
-                .containsEntry("FLOCI_SERVICES_SQS_MAX_MESSAGE_SIZE", "131072");
+                .containsEntry("FLOCI_SERVICES_SQS_MAX_MESSAGE_SIZE", "131072")
+                .containsEntry("FLOCI_SERVICES_SQS_CLEAR_FIFO_DEDUPLICATION_CACHE_ON_PURGE", "false");
     }
 
     @Test

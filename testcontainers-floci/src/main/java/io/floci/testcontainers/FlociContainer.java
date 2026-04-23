@@ -1,34 +1,6 @@
 package io.floci.testcontainers;
 
-import io.floci.testcontainers.config.AcmConfig;
-import io.floci.testcontainers.config.ApiGatewayConfig;
-import io.floci.testcontainers.config.ApiGatewayV2Config;
-import io.floci.testcontainers.config.AppConfigConfig;
-import io.floci.testcontainers.config.AppConfigDataConfig;
-import io.floci.testcontainers.config.CloudFormationConfig;
-import io.floci.testcontainers.config.CloudWatchLogsConfig;
-import io.floci.testcontainers.config.CloudWatchMetricsConfig;
-import io.floci.testcontainers.config.CognitoConfig;
-import io.floci.testcontainers.config.DynamoDbConfig;
-import io.floci.testcontainers.config.Ec2Config;
-import io.floci.testcontainers.config.EcrConfig;
-import io.floci.testcontainers.config.EcsConfig;
-import io.floci.testcontainers.config.ElastiCacheConfig;
-import io.floci.testcontainers.config.EventBridgeConfig;
-import io.floci.testcontainers.config.IamConfig;
-import io.floci.testcontainers.config.KinesisConfig;
-import io.floci.testcontainers.config.KmsConfig;
-import io.floci.testcontainers.config.LambdaConfig;
-import io.floci.testcontainers.config.OpenSearchConfig;
-import io.floci.testcontainers.config.RdsConfig;
-import io.floci.testcontainers.config.S3Config;
-import io.floci.testcontainers.config.SchedulerConfig;
-import io.floci.testcontainers.config.SecretsManagerConfig;
-import io.floci.testcontainers.config.SesConfig;
-import io.floci.testcontainers.config.SnsConfig;
-import io.floci.testcontainers.config.SqsConfig;
-import io.floci.testcontainers.config.SsmConfig;
-import io.floci.testcontainers.config.StepFunctionsConfig;
+import io.floci.testcontainers.config.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -37,17 +9,14 @@ import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.images.builder.Transferable;
 import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -124,6 +93,14 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private SqsConfig sqsConfig = SqsConfig.builder().build();
     private SsmConfig ssmConfig = SsmConfig.builder().build();
     private StepFunctionsConfig stepFunctionsConfig = StepFunctionsConfig.builder().build();
+    private MskConfig mskConfig = MskConfig.builder().build();
+    private FirehoseConfig firehoseConfig = FirehoseConfig.builder().build();
+    private AthenaConfig athenaConfig = AthenaConfig.builder().build();
+    private GlueConfig glueConfig = GlueConfig.builder().build();
+    private ResourceGroupsTaggingConfig resourceGroupsTaggingConfig = ResourceGroupsTaggingConfig.builder().build();
+    private BedrockRuntimeConfig bedrockRuntimeConfig = BedrockRuntimeConfig.builder().build();
+    private PipesConfig pipesConfig = PipesConfig.builder().build();
+    private EksConfig eksConfig = EksConfig.builder().build();
 
     /**
      * Creates a new Floci container with the default image ({@code floci/floci:latest}).
@@ -874,7 +851,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
      * <pre>{@code
      * new FlociContainer()
      *     .withOpenSearchConfig(c -> c
-     *         .mode("docker")
+     *         .mock(true)
      *         .proxyPortRange(9400, 100));
      * }</pre>
      *
@@ -1144,6 +1121,236 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         stepFunctionsConfig.applyEnvVarsToContainer(this);
         return this;
     }
+
+    /**
+     * MSK-specific settings such as mock mode and default image.
+     *
+     * @return the MSK configuration
+     */
+    public MskConfig getMskConfig() {
+        return mskConfig;
+    }
+
+    /**
+     * Configures MSK-specific settings such as mock mode and default image.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withMskConfig(c -> c
+     *         .mock(true)
+     *         .defaultImage("redpandadata/redpanda:v24"));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link MskConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withMskConfig(Consumer<MskConfig.Builder> configurer) {
+        MskConfig.Builder builder = MskConfig.builder();
+        configurer.accept(builder);
+        this.mskConfig = builder.build();
+        mskConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * Firehose-specific settings.
+     *
+     * @return the Firehose configuration
+     */
+    public FirehoseConfig getFirehoseConfig() {
+        return firehoseConfig;
+    }
+
+    /**
+     * Configures firehose-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withFirehoseConfig(c -> c.enabled(false));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link FirehoseConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withFirehoseConfig(Consumer<FirehoseConfig.Builder> configurer) {
+        FirehoseConfig.Builder builder = FirehoseConfig.builder();
+        configurer.accept(builder);
+        this.firehoseConfig = builder.build();
+        firehoseConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * Athena-specific settings.
+     *
+     * @return the Athena configuration
+     */
+    public AthenaConfig getAthenaConfig() {
+        return athenaConfig;
+    }
+
+    /**
+     * Configures athena-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withAthenaConfig(c -> c.enabled(false));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link AthenaConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withAthenaConfig(Consumer<AthenaConfig.Builder> configurer) {
+        AthenaConfig.Builder builder = AthenaConfig.builder();
+        configurer.accept(builder);
+        this.athenaConfig = builder.build();
+        athenaConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * Glue-specific settings.
+     *
+     * @return the Glue configuration
+     */
+    public GlueConfig getGlueConfig() {
+        return glueConfig;
+    }
+
+    /**
+     * Configures glue-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withGlueConfig(c -> c.enabled(false));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link GlueConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withGlueConfig(Consumer<GlueConfig.Builder> configurer) {
+        GlueConfig.Builder builder = GlueConfig.builder();
+        configurer.accept(builder);
+        this.glueConfig = builder.build();
+        glueConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * Resource Groups Tagging-specific settings.
+     *
+     * @return the Resource Groups Tagging configuration
+     */
+    public ResourceGroupsTaggingConfig getResourceGroupsTaggingConfig() {
+        return resourceGroupsTaggingConfig;
+    }
+
+    /**
+     * Configures resource groups tagging-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withResourceGroupsTaggingConfig(c -> c.enabled(false));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link ResourceGroupsTaggingConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withResourceGroupsTaggingConfig(Consumer<ResourceGroupsTaggingConfig.Builder> configurer) {
+        ResourceGroupsTaggingConfig.Builder builder = ResourceGroupsTaggingConfig.builder();
+        configurer.accept(builder);
+        this.resourceGroupsTaggingConfig = builder.build();
+        resourceGroupsTaggingConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * Bedrock Runtime-specific settings.
+     *
+     * @return the Bedrock Runtime configuration
+     */
+    public BedrockRuntimeConfig getBedrockRuntimeConfig() {
+        return bedrockRuntimeConfig;
+    }
+
+    /**
+     * Configures bedrock runtime-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withBedrockRuntimeConfig(c -> c.enabled(false));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link BedrockRuntimeConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withBedrockRuntimeConfig(Consumer<BedrockRuntimeConfig.Builder> configurer) {
+        BedrockRuntimeConfig.Builder builder = BedrockRuntimeConfig.builder();
+        configurer.accept(builder);
+        this.bedrockRuntimeConfig = builder.build();
+        bedrockRuntimeConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * Pipes-specific settings.
+     *
+     * @return the Pipes configuration
+     */
+    public PipesConfig getPipesConfig() {
+        return pipesConfig;
+    }
+
+    /**
+     * Configures pipes-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withPipesConfig(c -> c.enabled(false));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link PipesConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withPipesConfig(Consumer<PipesConfig.Builder> configurer) {
+        PipesConfig.Builder builder = PipesConfig.builder();
+        configurer.accept(builder);
+        this.pipesConfig = builder.build();
+        pipesConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * EKS-specific settings such as mock mode, provider, API server ports and default image.
+     *
+     * @return the EKS configuration
+     */
+    public EksConfig getEksConfig() {
+        return eksConfig;
+    }
+
+    /**
+     * Configures EKS-specific settings such as mock mode, provider, API server ports and default image.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withEksConfig(c -> c
+     *         .mock(true)
+     *         .apiServerPortRange(6500, 100));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link EksConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withEksConfig(Consumer<EksConfig.Builder> configurer) {
+        EksConfig.Builder builder = EksConfig.builder();
+        configurer.accept(builder);
+        this.eksConfig = builder.build();
+        configureExposedPorts();
+        eksConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
     /**
      * Configures all exposed ports of the Floci container
      */
@@ -1155,6 +1362,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         elastiCacheConfig.applyExposedPortsToContainer(this);
         openSearchConfig.applyExposedPortsToContainer(this);
         ecrConfig.applyExposedPortsToContainer(this);
+        eksConfig.applyExposedPortsToContainer(this);
     }
 
     /**
@@ -1190,6 +1398,14 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         sqsConfig.applyEnvVarsToContainer(this);
         ssmConfig.applyEnvVarsToContainer(this);
         stepFunctionsConfig.applyEnvVarsToContainer(this);
+        mskConfig.applyEnvVarsToContainer(this);
+        firehoseConfig.applyEnvVarsToContainer(this);
+        athenaConfig.applyEnvVarsToContainer(this);
+        glueConfig.applyEnvVarsToContainer(this);
+        resourceGroupsTaggingConfig.applyEnvVarsToContainer(this);
+        bedrockRuntimeConfig.applyEnvVarsToContainer(this);
+        pipesConfig.applyEnvVarsToContainer(this);
+        eksConfig.applyEnvVarsToContainer(this);
     }
 
     private static String uniqueShortId() {
