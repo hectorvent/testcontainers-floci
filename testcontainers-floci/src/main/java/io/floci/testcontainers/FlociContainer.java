@@ -64,7 +64,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
 
     private static final Logger logger = LoggerFactory.getLogger(FlociContainer.class);
 
-    private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("hectorvent/floci");
+    private static final DockerImageName DEFAULT_IMAGE_NAME = DockerImageName.parse("floci/floci");
     private static final String DEFAULT_TAG = "latest";
 
     /**
@@ -108,7 +108,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private StepFunctionsConfig stepFunctionsConfig = StepFunctionsConfig.builder().build();
 
     /**
-     * Creates a new Floci container with the default image ({@code hectorvent/floci:latest}).
+     * Creates a new Floci container with the default image ({@code floci/floci:latest}).
      */
     public FlociContainer() {
         this(DEFAULT_IMAGE_NAME.withTag(DEFAULT_TAG));
@@ -117,7 +117,7 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     /**
      * Creates a new Floci container with the specified image name.
      *
-     * @param dockerImageName the Docker image name (must be compatible with {@code hectorvent/floci})
+     * @param dockerImageName the Docker image name (must be compatible with {@code floci/floci})
      */
     public FlociContainer(String dockerImageName) {
         this(DockerImageName.parse(dockerImageName));
