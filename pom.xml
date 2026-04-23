@@ -46,7 +46,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <testcontainers.version>1.21.4</testcontainers.version>
-        <spring-boot.version>3.5.13</spring-boot.version>
+        <spring-boot.version>3.5.14</spring-boot.version>
         <spring-cloud-aws.version>3.4.2</spring-cloud-aws.version>
         <aws-sdk.version>2.42.33</aws-sdk.version>
         <junit.version>5.14.3</junit.version>
