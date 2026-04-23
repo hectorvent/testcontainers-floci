@@ -1,3 +1,12 @@
+# [2.3.0](https://github.com/floci-io/testcontainers-floci/compare/v2.2.0...v2.3.0) (2026-04-23)
+
+
+### Features
+
+* added support for ElastiCache, OpenSearch, ECS and ECR. ([0f5c31a](https://github.com/floci-io/testcontainers-floci/commit/0f5c31ad6760896ef0a382c3567be62465b13123))
+
+
+
 # [2.2.0](https://github.com/floci-io/testcontainers-floci/compare/v2.1.0...v2.2.0) (2026-04-23)
 
 
