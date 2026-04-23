@@ -30,9 +30,6 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     target-branch: releases/1.x
-    ignore:
-      - dependency-name: "*"
-        update-types: [ "version-update:semver-major" ]
     schedule:
       interval: daily
     open-pull-requests-limit: 5
