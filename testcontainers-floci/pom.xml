@@ -36,6 +36,7 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -51,6 +52,12 @@
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
@@ -187,6 +194,47 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>kafka</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>firehose</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>athena</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>glue</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>resourcegroupstaggingapi</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>bedrockruntime</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>pipes</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>eks</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.10</version>
@@ -196,6 +244,24 @@
             <groupId>io.lettuce</groupId>
             <artifactId>lettuce-core</artifactId>
             <version>6.8.2.RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.opensearch.client</groupId>
+            <artifactId>opensearch-java</artifactId>
+            <version>2.20.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>3.9.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kubernetes</groupId>
+            <artifactId>client-java</artifactId>
+            <version>22.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

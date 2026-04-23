@@ -12,14 +12,17 @@ class IamConfigTest {
     void shouldApplyDefaultIamConfig() {
         IamConfig config = IamConfig.builder().build();
         assertThat(config.isEnabled()).isTrue();
+        assertThat(config.isEnforcementEnabled()).isFalse();
     }
 
     @Test
     void shouldApplyCustomIamConfig() {
         IamConfig config = IamConfig.builder()
                 .enabled(false)
+                .enforcementEnabled(true)
                 .build();
         assertThat(config.isEnabled()).isFalse();
+        assertThat(config.isEnforcementEnabled()).isTrue();
     }
 
     @Test
@@ -27,7 +30,9 @@ class IamConfigTest {
         GenericContainer<?> container = genericContainer();
         IamConfig.builder().build().applyEnvVarsToContainer(container);
 
-        assertThat(container.getEnvMap()).containsEntry("FLOCI_SERVICES_IAM_ENABLED", "true");
+        assertThat(container.getEnvMap())
+                .containsEntry("FLOCI_SERVICES_IAM_ENABLED", "true")
+                .containsEntry("FLOCI_SERVICES_IAM_ENFORCEMENT_ENABLED", "false");
     }
 
     @Test

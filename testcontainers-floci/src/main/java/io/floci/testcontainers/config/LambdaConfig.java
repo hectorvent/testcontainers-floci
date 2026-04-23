@@ -24,6 +24,8 @@ public class LambdaConfig extends AbstractServiceConfig {
     private static final int DEFAULT_RUNTIME_API_PORTS_COUNT = 10;
     private static final int DEFAULT_POLL_INTERVAL_MS = 1000;
     private static final int DEFAULT_CONTAINER_IDLE_TIMEOUT_SECONDS = 300;
+    private static final int DEFAULT_REGION_CONCURRENCY_LIMIT = 1000;
+    private static final int DEFAULT_UNRESERVED_CONCURRENCY_MIN = 100;
 
     private final boolean ephemeral;
     private final boolean exposeRuntimePorts;
@@ -34,6 +36,8 @@ public class LambdaConfig extends AbstractServiceConfig {
     private final int runtimeApiPortsCount;
     private final int pollIntervalMs;
     private final int containerIdleTimeoutSeconds;
+    private final int regionConcurrencyLimit;
+    private final int unreservedConcurrencyMin;
 
     private LambdaConfig(Builder builder) {
         super(builder.enabled);
@@ -46,6 +50,8 @@ public class LambdaConfig extends AbstractServiceConfig {
         this.runtimeApiPortsCount = builder.runtimeApiPortsCount;
         this.pollIntervalMs = builder.pollIntervalMs;
         this.containerIdleTimeoutSeconds = builder.containerIdleTimeoutSeconds;
+        this.regionConcurrencyLimit = builder.regionConcurrencyLimit;
+        this.unreservedConcurrencyMin = builder.unreservedConcurrencyMin;
     }
 
     public static Builder builder() {
@@ -143,6 +149,25 @@ public class LambdaConfig extends AbstractServiceConfig {
         return containerIdleTimeoutSeconds;
     }
 
+    /**
+     * Returns the per-region concurrent executions ceiling.
+     *
+     * @return the region concurrency limit
+     */
+    public int getRegionConcurrencyLimit() {
+        return regionConcurrencyLimit;
+    }
+
+    /**
+     * Returns the minimum unreserved concurrency that must remain after
+     * {@code PutFunctionConcurrency}.
+     *
+     * @return the unreserved concurrency minimum
+     */
+    public int getUnreservedConcurrencyMin() {
+        return unreservedConcurrencyMin;
+    }
+
     @Override
     public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_LAMBDA_ENABLED", String.valueOf(isEnabled()));
@@ -155,6 +180,8 @@ public class LambdaConfig extends AbstractServiceConfig {
             container.withEnv("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", String.valueOf(getRuntimeApiMaxPort()));
             container.withEnv("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", String.valueOf(pollIntervalMs));
             container.withEnv("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", String.valueOf(containerIdleTimeoutSeconds));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_REGION_CONCURRENCY_LIMIT", String.valueOf(regionConcurrencyLimit));
+            container.withEnv("FLOCI_SERVICES_LAMBDA_UNRESERVED_CONCURRENCY_MIN", String.valueOf(unreservedConcurrencyMin));
 
             if (dockerNetwork != null) {
                 container.withEnv("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", dockerNetwork);
@@ -186,6 +213,8 @@ public class LambdaConfig extends AbstractServiceConfig {
         private int runtimeApiPortsCount = DEFAULT_RUNTIME_API_PORTS_COUNT;
         private int pollIntervalMs = DEFAULT_POLL_INTERVAL_MS;
         private int containerIdleTimeoutSeconds = DEFAULT_CONTAINER_IDLE_TIMEOUT_SECONDS;
+        private int regionConcurrencyLimit = DEFAULT_REGION_CONCURRENCY_LIMIT;
+        private int unreservedConcurrencyMin = DEFAULT_UNRESERVED_CONCURRENCY_MIN;
 
         private Builder() {
             // Allow instantiation only via LambdaConfig.builder()
@@ -289,6 +318,30 @@ public class LambdaConfig extends AbstractServiceConfig {
          */
         public Builder containerIdleTimeoutSeconds(int containerIdleTimeoutSeconds) {
             this.containerIdleTimeoutSeconds = containerIdleTimeoutSeconds;
+            return this;
+        }
+
+        /**
+         * Sets the per-region concurrent executions ceiling. AWS Lambda's account-level
+         * concurrency is per-region (default 1000); Floci mirrors that semantics.
+         *
+         * @param regionConcurrencyLimit the concurrency limit (default {@value DEFAULT_REGION_CONCURRENCY_LIMIT})
+         * @return this builder
+         */
+        public Builder regionConcurrencyLimit(int regionConcurrencyLimit) {
+            this.regionConcurrencyLimit = regionConcurrencyLimit;
+            return this;
+        }
+
+        /**
+         * Sets the minimum unreserved concurrency that must remain after
+         * {@code PutFunctionConcurrency}. Puts that would leave less than this are rejected.
+         *
+         * @param unreservedConcurrencyMin the minimum (default {@value DEFAULT_UNRESERVED_CONCURRENCY_MIN})
+         * @return this builder
+         */
+        public Builder unreservedConcurrencyMin(int unreservedConcurrencyMin) {
+            this.unreservedConcurrencyMin = unreservedConcurrencyMin;
             return this;
         }
 
