@@ -149,7 +149,7 @@ class S3IntegrationTest {
 
 | Method                   | Description                                                                                                   |
 |--------------------------|---------------------------------------------------------------------------------------------------------------|
-| `FlociContainer()`       | Creates a container with the default image (`hectorvent/floci:latest`)                                        |
+| `FlociContainer()`       | Creates a container with the default image (`floci/floci:latest`)                                        |
 | `FlociContainer(String)` | Creates a container with a custom image tag                                                                   |
 | `withRegion(String)`     | Sets the AWS region                                                                                           |
 | `withLogLevel(Level)`    | Sets the Floci log level (`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`)                                          |
