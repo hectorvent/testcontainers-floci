@@ -8,14 +8,19 @@ import org.testcontainers.containers.Container;
  * <p>Instances are created via {@link Builder}:
  * <pre>{@code
  * IamConfig config = IamConfig.builder()
+ *     .enforcementEnabled(true)
  *     .build();
  * }</pre>
  */
 public class IamConfig extends AbstractServiceConfig {
 
+    private static final boolean DEFAULT_ENFORCEMENT_ENABLED = false;
+
+    private final boolean enforcementEnabled;
 
     private IamConfig(Builder builder) {
         super(builder.enabled);
+        this.enforcementEnabled = builder.enforcementEnabled;
     }
 
     public static Builder builder() {
@@ -23,9 +28,22 @@ public class IamConfig extends AbstractServiceConfig {
     }
 
 
+    /**
+     * Returns whether IAM enforcement is enabled.
+     *
+     * @return {@code true} if IAM enforcement is enabled
+     */
+    public boolean isEnforcementEnabled() {
+        return enforcementEnabled;
+    }
+
     @Override
     public void applyEnvVarsToContainer(Container<?> container) {
         container.withEnv("FLOCI_SERVICES_IAM_ENABLED", String.valueOf(isEnabled()));
+
+        if (isEnabled()) {
+            container.withEnv("FLOCI_SERVICES_IAM_ENFORCEMENT_ENABLED", String.valueOf(enforcementEnabled));
+        }
     }
 
     /**
@@ -34,6 +52,7 @@ public class IamConfig extends AbstractServiceConfig {
     public static class Builder {
 
         private boolean enabled = DEFAULT_ENABLED;
+        private boolean enforcementEnabled = DEFAULT_ENFORCEMENT_ENABLED;
 
         private Builder() {
             // Allow instantiation only via IamConfig.builder()
@@ -47,6 +66,17 @@ public class IamConfig extends AbstractServiceConfig {
          */
         public Builder enabled(boolean enabled) {
             this.enabled = enabled;
+            return this;
+        }
+
+        /**
+         * Enables or disables IAM enforcement.
+         *
+         * @param enforcementEnabled {@code true} to enable enforcement (default {@value DEFAULT_ENFORCEMENT_ENABLED})
+         * @return this builder
+         */
+        public Builder enforcementEnabled(boolean enforcementEnabled) {
+            this.enforcementEnabled = enforcementEnabled;
             return this;
         }
 

@@ -1,8 +1,6 @@
 package io.floci.testcontainers;
 
 import org.junit.jupiter.api.*;
-import org.slf4j.Logger;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.DBInstance;
 
@@ -14,6 +12,7 @@ import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class FlociContainerRdsServiceTest extends AbstractFlociContainerServiceTest {
@@ -69,31 +68,29 @@ class FlociContainerRdsServiceTest extends AbstractFlociContainerServiceTest {
 
     @Test
     @Order(4)
-    void shouldConnectViaJdbc() {
+    void shouldConnectViaJdbc() throws Exception {
         int pgProxyPort = floci.getMappedPort(floci.getRdsConfig().getProxyBasePort());
         String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s?sslmode=disable", floci.getHost(), pgProxyPort, DB_NAME);
 
-        for (int attempt = 1; ; attempt++) {
-            try (Connection conn = DriverManager.getConnection(jdbcUrl, MASTER_USER, MASTER_PASSWORD);
-                 Statement stmt = conn.createStatement()) {
+        // Wait for the database to be reachable
+        await().atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofSeconds(1))
+                .ignoreExceptions()
+                .untilAsserted(() -> {
+                    try (Connection conn = DriverManager.getConnection(jdbcUrl, MASTER_USER, MASTER_PASSWORD)) {
+                        assertThat(conn.isValid(1)).isTrue();
+                    }
+                });
 
-                stmt.execute("CREATE TABLE test_table (id SERIAL PRIMARY KEY, name VARCHAR(100))");
-                stmt.execute("INSERT INTO test_table (name) VALUES ('hello from floci')");
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, MASTER_USER, MASTER_PASSWORD);
+             Statement stmt = conn.createStatement()) {
 
-                try (ResultSet rs = stmt.executeQuery("SELECT name FROM test_table")) {
-                    assertThat(rs.next()).isTrue();
-                    assertThat(rs.getString("name")).isEqualTo("hello from floci");
-                }
-                break;
-            } catch (Exception e) {
-                if (attempt >= 10) {
-                    throw new RuntimeException("Failed to connect to RDS PostgreSQL instance via JDBC after 10 attempts", e);
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                }
+            stmt.execute("CREATE TABLE test_table (id SERIAL PRIMARY KEY, name VARCHAR(100))");
+            stmt.execute("INSERT INTO test_table (name) VALUES ('hello from floci')");
+
+            try (ResultSet rs = stmt.executeQuery("SELECT name FROM test_table")) {
+                assertThat(rs.next()).isTrue();
+                assertThat(rs.getString("name")).isEqualTo("hello from floci");
             }
         }
     }

@@ -9,19 +9,19 @@ import org.testcontainers.containers.Container;
  * <pre>{@code
  * OpenSearchConfig config = OpenSearchConfig.builder()
  *     .enabled(true)
- *     .mode("mock")
+ *     .mock(true)
  *     .proxyPortRange(9400, 100)
  *     .build();
  * }</pre>
  */
 public class OpenSearchConfig extends AbstractServiceConfig {
 
-    private static final String DEFAULT_MODE = "mock";
+    private static final boolean DEFAULT_MOCK = false;
     private static final String DEFAULT_IMAGE = "opensearchproject/opensearch:2";
     private static final int DEFAULT_PROXY_BASE_PORT = 9400;
     private static final int DEFAULT_PROXY_PORTS_COUNT = 10;
 
-    private final String mode;
+    private final boolean mock;
     private final String defaultImage;
     private final int proxyBasePort;
     private final int proxyPortsCount;
@@ -29,7 +29,7 @@ public class OpenSearchConfig extends AbstractServiceConfig {
 
     private OpenSearchConfig(Builder builder) {
         super(builder.enabled);
-        this.mode = builder.mode;
+        this.mock = builder.mock;
         this.defaultImage = builder.defaultImage;
         this.proxyBasePort = builder.proxyBasePort;
         this.proxyPortsCount = builder.proxyPortsCount;
@@ -41,12 +41,12 @@ public class OpenSearchConfig extends AbstractServiceConfig {
     }
 
     /**
-     * Returns the OpenSearch mode ({@code "mock"} or {@code "docker"}).
+     * Returns whether domains are simulated in-memory without real Docker containers.
      *
-     * @return the mode
+     * @return {@code true} if mock mode is enabled
      */
-    public String getMode() {
-        return mode;
+    public boolean isMock() {
+        return mock;
     }
 
     /**
@@ -99,7 +99,7 @@ public class OpenSearchConfig extends AbstractServiceConfig {
         container.withEnv("FLOCI_SERVICES_OPENSEARCH_ENABLED", String.valueOf(isEnabled()));
 
         if (isEnabled()) {
-            container.withEnv("FLOCI_SERVICES_OPENSEARCH_MODE", mode);
+            container.withEnv("FLOCI_SERVICES_OPENSEARCH_MOCK", String.valueOf(mock));
             container.withEnv("FLOCI_SERVICES_OPENSEARCH_DEFAULT_IMAGE", defaultImage);
             container.withEnv("FLOCI_SERVICES_OPENSEARCH_PROXY_BASE_PORT", String.valueOf(proxyBasePort));
             container.withEnv("FLOCI_SERVICES_OPENSEARCH_PROXY_MAX_PORT", String.valueOf(getProxyMaxPort()));
@@ -125,7 +125,7 @@ public class OpenSearchConfig extends AbstractServiceConfig {
     public static class Builder {
 
         private boolean enabled = DEFAULT_ENABLED;
-        private String mode = DEFAULT_MODE;
+        private boolean mock = DEFAULT_MOCK;
         private String defaultImage = DEFAULT_IMAGE;
         private int proxyBasePort = DEFAULT_PROXY_BASE_PORT;
         private int proxyPortsCount = DEFAULT_PROXY_PORTS_COUNT;
@@ -147,13 +147,13 @@ public class OpenSearchConfig extends AbstractServiceConfig {
         }
 
         /**
-         * Sets the OpenSearch mode.
+         * Sets whether domains are simulated in-memory without real Docker containers.
          *
-         * @param mode {@code "mock"} for in-memory or {@code "docker"} for real OpenSearch containers (default {@value DEFAULT_MODE})
+         * @param mock {@code true} to enable mock mode (default {@value DEFAULT_MOCK})
          * @return this builder
          */
-        public Builder mode(String mode) {
-            this.mode = mode;
+        public Builder mock(boolean mock) {
+            this.mock = mock;
             return this;
         }
 

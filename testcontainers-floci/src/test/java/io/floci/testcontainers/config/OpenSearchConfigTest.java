@@ -13,7 +13,7 @@ class OpenSearchConfigTest {
     void shouldApplyDefaultOpenSearchConfig() {
         OpenSearchConfig config = OpenSearchConfig.builder().build();
         assertThat(config.isEnabled()).isTrue();
-        assertThat(config.getMode()).isEqualTo("mock");
+        assertThat(config.isMock()).isFalse();
         assertThat(config.getDefaultImage()).isEqualTo("opensearchproject/opensearch:2");
         assertThat(config.getProxyBasePort()).isEqualTo(9400);
         assertThat(config.getProxyMaxPort()).isEqualTo(9409);
@@ -25,13 +25,13 @@ class OpenSearchConfigTest {
     void shouldApplyCustomOpenSearchConfig() {
         OpenSearchConfig config = OpenSearchConfig.builder()
                 .enabled(false)
-                .mode("docker")
+                .mock(true)
                 .defaultImage("opensearchproject/opensearch:3")
                 .proxyPortRange(9500, 50)
                 .dockerNetwork("my-os-network")
                 .build();
         assertThat(config.isEnabled()).isFalse();
-        assertThat(config.getMode()).isEqualTo("docker");
+        assertThat(config.isMock()).isTrue();
         assertThat(config.getDefaultImage()).isEqualTo("opensearchproject/opensearch:3");
         assertThat(config.getProxyBasePort()).isEqualTo(9500);
         assertThat(config.getProxyMaxPort()).isEqualTo(9549);
@@ -46,7 +46,7 @@ class OpenSearchConfigTest {
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_ENABLED", "true")
-                .containsEntry("FLOCI_SERVICES_OPENSEARCH_MODE", "mock")
+                .containsEntry("FLOCI_SERVICES_OPENSEARCH_MOCK", "false")
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_DEFAULT_IMAGE", "opensearchproject/opensearch:2")
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_PROXY_BASE_PORT", "9400")
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_PROXY_MAX_PORT", "9409")
@@ -58,7 +58,7 @@ class OpenSearchConfigTest {
         GenericContainer<?> container = genericContainer();
         OpenSearchConfig.builder()
                 .enabled(true)
-                .mode("docker")
+                .mock(true)
                 .defaultImage("opensearchproject/opensearch:3")
                 .proxyPortRange(9500, 50)
                 .dockerNetwork("my-os-network")
@@ -67,7 +67,7 @@ class OpenSearchConfigTest {
 
         assertThat(container.getEnvMap())
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_ENABLED", "true")
-                .containsEntry("FLOCI_SERVICES_OPENSEARCH_MODE", "docker")
+                .containsEntry("FLOCI_SERVICES_OPENSEARCH_MOCK", "true")
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_DEFAULT_IMAGE", "opensearchproject/opensearch:3")
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_PROXY_BASE_PORT", "9500")
                 .containsEntry("FLOCI_SERVICES_OPENSEARCH_PROXY_MAX_PORT", "9549")

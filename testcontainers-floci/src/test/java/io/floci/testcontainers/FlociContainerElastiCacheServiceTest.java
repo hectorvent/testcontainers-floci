@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @TestMethodOrder(OrderAnnotation.class)
 class FlociContainerElastiCacheServiceTest extends AbstractFlociContainerServiceTest {
@@ -58,47 +59,44 @@ class FlociContainerElastiCacheServiceTest extends AbstractFlociContainerService
         int redisProxyPort = floci.getMappedPort(floci.getElastiCacheConfig().getProxyBasePort());
         String redisUri = String.format("redis://%s:%d", floci.getHost(), redisProxyPort);
 
-        for (int attempt = 1; ; attempt++) {
-            try (RedisClient redisClient = RedisClient.create(redisUri);
-                 StatefulRedisConnection<String, String> connection = redisClient.connect()) {
+        // Wait for Redis to be reachable
+        await().atMost(Duration.ofSeconds(10))
+                .pollInterval(Duration.ofSeconds(1))
+                .ignoreExceptions()
+                .untilAsserted(() -> {
+                    try (RedisClient rc = RedisClient.create(redisUri);
+                         StatefulRedisConnection<String, String> conn = rc.connect()) {
+                        assertThat(conn.sync().ping()).isEqualTo("PONG");
+                    }
+                });
 
-                RedisCommands<String, String> commands = connection.sync();
+        try (RedisClient redisClient = RedisClient.create(redisUri);
+             StatefulRedisConnection<String, String> connection = redisClient.connect()) {
 
-                // String values
-                commands.set("greeting", "hello from floci");
-                assertThat(commands.get("greeting")).isEqualTo("hello from floci");
+            RedisCommands<String, String> commands = connection.sync();
 
-                // Hash values
-                commands.hset("user:1", Map.of(
-                        "name", "Alice",
-                        "email", "alice@example.com"));
-                assertThat(commands.hget("user:1", "name")).isEqualTo("Alice");
-                assertThat(commands.hget("user:1", "email")).isEqualTo("alice@example.com");
-                assertThat(commands.hgetall("user:1")).containsEntry("name", "Alice");
+            // String values
+            commands.set("greeting", "hello from floci");
+            assertThat(commands.get("greeting")).isEqualTo("hello from floci");
 
-                // List values
-                commands.rpush("queue", "first", "second", "third");
-                assertThat(commands.lrange("queue", 0, -1))
-                        .containsExactly("first", "second", "third");
-                assertThat(commands.lpop("queue")).isEqualTo("first");
+            // Hash values
+            commands.hset("user:1", Map.of(
+                    "name", "Alice",
+                    "email", "alice@example.com"));
+            assertThat(commands.hget("user:1", "name")).isEqualTo("Alice");
+            assertThat(commands.hget("user:1", "email")).isEqualTo("alice@example.com");
+            assertThat(commands.hgetall("user:1")).containsEntry("name", "Alice");
 
-                // Key expiry
-                commands.set("temp-key", "expires-soon");
-                commands.expire("temp-key", 3600);
-                assertThat(commands.ttl("temp-key")).isGreaterThan(0);
+            // List values
+            commands.rpush("queue", "first", "second", "third");
+            assertThat(commands.lrange("queue", 0, -1))
+                    .containsExactly("first", "second", "third");
+            assertThat(commands.lpop("queue")).isEqualTo("first");
 
-                break;
-            } catch (Exception e) {
-                if (attempt >= 10) {
-                    throw new RuntimeException(
-                            "Failed to connect to ElastiCache Redis instance via Lettuce after 10 attempts", e);
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                }
-            }
+            // Key expiry
+            commands.set("temp-key", "expires-soon");
+            commands.expire("temp-key", 3600);
+            assertThat(commands.ttl("temp-key")).isGreaterThan(0);
         }
     }
 

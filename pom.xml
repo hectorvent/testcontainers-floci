@@ -52,6 +52,7 @@
         <junit.version>6.0.3</junit.version>
         <assertj.version>3.27.7</assertj.version>
         <slf4j.version>1.7.36</slf4j.version>
+        <awaitility.version>4.2.2</awaitility.version>
     </properties>
 
     <dependencyManagement>
@@ -79,6 +80,11 @@
                 <groupId>org.assertj</groupId>
                 <artifactId>assertj-core</artifactId>
                 <version>${assertj.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.awaitility</groupId>
+                <artifactId>awaitility</artifactId>
+                <version>${awaitility.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

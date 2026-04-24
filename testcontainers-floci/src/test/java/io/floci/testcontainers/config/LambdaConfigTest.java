@@ -23,6 +23,8 @@ class LambdaConfigTest {
         assertThat(config.getRuntimeApiPortsCount()).isEqualTo(10);
         assertThat(config.getPollIntervalMs()).isEqualTo(1000);
         assertThat(config.getContainerIdleTimeoutSeconds()).isEqualTo(300);
+        assertThat(config.getRegionConcurrencyLimit()).isEqualTo(1000);
+        assertThat(config.getUnreservedConcurrencyMin()).isEqualTo(100);
     }
 
     @Test
@@ -37,6 +39,8 @@ class LambdaConfigTest {
                 .runtimeApiPortRange(9300, 50)
                 .pollIntervalMs(500)
                 .containerIdleTimeoutSeconds(600)
+                .regionConcurrencyLimit(500)
+                .unreservedConcurrencyMin(50)
                 .build();
         assertThat(config.isEnabled()).isFalse();
         assertThat(config.isEphemeral()).isTrue();
@@ -49,6 +53,8 @@ class LambdaConfigTest {
         assertThat(config.getRuntimeApiPortsCount()).isEqualTo(50);
         assertThat(config.getPollIntervalMs()).isEqualTo(500);
         assertThat(config.getContainerIdleTimeoutSeconds()).isEqualTo(600);
+        assertThat(config.getRegionConcurrencyLimit()).isEqualTo(500);
+        assertThat(config.getUnreservedConcurrencyMin()).isEqualTo(50);
     }
 
     @Test
@@ -65,6 +71,8 @@ class LambdaConfigTest {
                 .containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", "9209")
                 .containsEntry("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", "1000")
                 .containsEntry("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", "300")
+                .containsEntry("FLOCI_SERVICES_LAMBDA_REGION_CONCURRENCY_LIMIT", "1000")
+                .containsEntry("FLOCI_SERVICES_LAMBDA_UNRESERVED_CONCURRENCY_MIN", "100")
                 .doesNotContainKey("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK");
     }
 
@@ -79,6 +87,8 @@ class LambdaConfigTest {
                 .runtimeApiPortRange(9500, 50)
                 .pollIntervalMs(500)
                 .containerIdleTimeoutSeconds(600)
+                .regionConcurrencyLimit(500)
+                .unreservedConcurrencyMin(50)
                 .dockerNetwork("my-network")
                 .build()
                 .applyEnvVarsToContainer(container);
@@ -92,6 +102,8 @@ class LambdaConfigTest {
                 .containsEntry("FLOCI_SERVICES_LAMBDA_RUNTIME_API_MAX_PORT", "9549")
                 .containsEntry("FLOCI_SERVICES_LAMBDA_POLL_INTERVAL_MS", "500")
                 .containsEntry("FLOCI_SERVICES_LAMBDA_CONTAINER_IDLE_TIMEOUT_SECONDS", "600")
+                .containsEntry("FLOCI_SERVICES_LAMBDA_REGION_CONCURRENCY_LIMIT", "500")
+                .containsEntry("FLOCI_SERVICES_LAMBDA_UNRESERVED_CONCURRENCY_MIN", "50")
                 .containsEntry("FLOCI_SERVICES_LAMBDA_DOCKER_NETWORK", "my-network");
     }
 
