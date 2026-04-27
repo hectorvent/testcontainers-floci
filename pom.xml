@@ -48,7 +48,7 @@
         <testcontainers.version>1.21.4</testcontainers.version>
         <spring-boot.version>3.5.14</spring-boot.version>
         <spring-cloud-aws.version>3.4.2</spring-cloud-aws.version>
-        <aws-sdk.version>2.42.41</aws-sdk.version>
+        <aws-sdk.version>2.43.0</aws-sdk.version>
         <junit.version>5.14.3</junit.version>
         <assertj.version>3.27.7</assertj.version>
         <slf4j.version>2.0.17</slf4j.version>
