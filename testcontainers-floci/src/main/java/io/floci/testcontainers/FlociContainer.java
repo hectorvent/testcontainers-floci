@@ -101,6 +101,9 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     private BedrockRuntimeConfig bedrockRuntimeConfig = BedrockRuntimeConfig.builder().build();
     private PipesConfig pipesConfig = PipesConfig.builder().build();
     private EksConfig eksConfig = EksConfig.builder().build();
+    private CodeBuildConfig codeBuildConfig = CodeBuildConfig.builder().build();
+    private CodeDeployConfig codeDeployConfig = CodeDeployConfig.builder().build();
+    private ElbV2Config elbV2Config = ElbV2Config.builder().build();
 
     /**
      * Creates a new Floci container with the default image ({@code floci/floci:latest}).
@@ -1352,6 +1355,90 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
     }
 
     /**
+     * CodeBuild-specific settings
+     *
+     * @return the CodeBuild configuration
+     */
+    public CodeBuildConfig getCodeBuildConfig() {
+        return codeBuildConfig;
+    }
+
+    /**
+     * Configures CodeBuild-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withCodeBuildConfig(c -> c.enabled(true));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link CodeBuildConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withCodeBuildConfig(Consumer<CodeBuildConfig.Builder> configurer) {
+        CodeBuildConfig.Builder builder = CodeBuildConfig.builder();
+        configurer.accept(builder);
+        this.codeBuildConfig = builder.build();
+        codeBuildConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * CodeDeploy-specific settings
+     *
+     * @return the CodeDeploy configuration
+     */
+    public CodeDeployConfig getCodeDeployConfig() {
+        return codeDeployConfig;
+    }
+
+    /**
+     * Configures CodeDeploy-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withCodeDeployConfig(c -> c.enabled(true));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link CodeDeployConfig.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withCodeDeployConfig(Consumer<CodeDeployConfig.Builder> configurer) {
+        CodeDeployConfig.Builder builder = CodeDeployConfig.builder();
+        configurer.accept(builder);
+        this.codeDeployConfig = builder.build();
+        codeDeployConfig.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
+     * ELBv2-specific settings
+     *
+     * @return the ELBv2 configuration
+     */
+    public ElbV2Config getElbV2Config() {
+        return elbV2Config;
+    }
+
+    /**
+     * Configures ELBv2-specific settings.
+     *
+     * <pre>{@code
+     * new FlociContainer()
+     *     .withElbV2Config(c -> c.enabled(true));
+     * }</pre>
+     *
+     * @param configurer a consumer that receives a {@link ElbV2Config.Builder} to modify
+     * @return this container instance
+     */
+    public FlociContainer withElbV2Config(Consumer<ElbV2Config.Builder> configurer) {
+        ElbV2Config.Builder builder = ElbV2Config.builder();
+        configurer.accept(builder);
+        this.elbV2Config = builder.build();
+        elbV2Config.applyEnvVarsToContainer(this);
+        return this;
+    }
+
+    /**
      * Configures all exposed ports of the Floci container
      */
     private void configureExposedPorts() {
@@ -1406,6 +1493,9 @@ public class FlociContainer extends GenericContainer<FlociContainer> {
         bedrockRuntimeConfig.applyEnvVarsToContainer(this);
         pipesConfig.applyEnvVarsToContainer(this);
         eksConfig.applyEnvVarsToContainer(this);
+        codeBuildConfig.applyEnvVarsToContainer(this);
+        codeDeployConfig.applyEnvVarsToContainer(this);
+        elbV2Config.applyEnvVarsToContainer(this);
     }
 
     private static String uniqueShortId() {
